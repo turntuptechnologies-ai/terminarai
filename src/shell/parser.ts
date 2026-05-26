@@ -37,6 +37,12 @@ export function parse(tokens: Token[]): ParseResult {
       continue
     }
     // redirect
+    if (stdoutRedirect !== undefined) {
+      return {
+        ok: false,
+        error: { message: 'syntax error: multiple stdout redirections are not supported' },
+      }
+    }
     const next = tokens[i + 1]
     if (!next || next.type !== 'word') {
       return {

@@ -133,4 +133,43 @@ describe('tokenize', () => {
       { type: 'word', value: '' },
     ])
   })
+
+  it('末尾の単独 \\ はエラー', () => {
+    const r = tokenize('echo \\')
+    expect(r.ok).toBe(false)
+    if (!r.ok) expect(r.error.message).toContain('trailing backslash')
+  })
+
+  describe('MVP 未対応メタ文字は明示的にエラー', () => {
+    const cases: Array<[string, string]> = [
+      ['cat foo | grep x', 'pipe'],
+      ['cat < foo', 'input redirect'],
+      ['ls ; pwd', 'command separator'],
+      ['sleep 1 &', 'background'],
+      ['echo `date`', 'command substitution'],
+      ['echo $HOME', 'variable'],
+      ['(ls)', 'subshell'],
+    ]
+    for (const [input, expectedFragment] of cases) {
+      it(`${input} → not supported`, () => {
+        const r = tokenize(input)
+        expect(r.ok).toBe(false)
+        if (!r.ok) {
+          expect(r.error.message).toContain('not supported')
+          expect(r.error.message).toContain(expectedFragment)
+        }
+      })
+    }
+
+    it('クォート内のメタ文字は許容される', () => {
+      expect(ok("echo '|'")).toEqual([
+        { type: 'word', value: 'echo' },
+        { type: 'word', value: '|' },
+      ])
+      expect(ok('echo "$HOME"')).toEqual([
+        { type: 'word', value: 'echo' },
+        { type: 'word', value: '$HOME' },
+      ])
+    })
+  })
 })

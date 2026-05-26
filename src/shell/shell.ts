@@ -74,14 +74,29 @@ class ShellImpl implements Shell {
       return {
         result: {
           stdout: '',
-          stderr: ensureTrailingNewline(`${cmdName}: command not found`),
+          stderr: ensureTrailingNewline(`terminarai: ${cmdName}: command not found`),
           exitCode: 127,
         },
         nextCwd: ctx.cwd,
       }
     }
 
-    const handlerResult = handler(args, ctx, this.vfs)
+    // ハンドラの例外は UI まで伝播させない。学習用アプリでシェルが死ぬのは最悪体験。
+    let handlerResult: CommandResult
+    try {
+      handlerResult = handler(args, ctx, this.vfs)
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      console.error(`[terminarai] handler '${cmdName}' threw:`, e)
+      return {
+        result: {
+          stdout: '',
+          stderr: ensureTrailingNewline(`terminarai: ${cmdName}: internal error: ${msg}`),
+          exitCode: 1,
+        },
+        nextCwd: ctx.cwd,
+      }
+    }
     const nextCwd = handlerResult.cwdAfter ?? ctx.cwd
 
     if (!stdoutRedirect) {

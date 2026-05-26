@@ -70,4 +70,16 @@ describe('parse', () => {
       expect(r.command.stdoutRedirect).toEqual({ target: 'out', append: false })
     }
   })
+
+  it('複数の stdout リダイレクトはエラー', () => {
+    const r = parse(tokens('echo hi > a > b'))
+    expect(r.ok).toBe(false)
+    if (!r.ok) expect(r.error.message).toContain('multiple stdout redirections')
+  })
+
+  it('> と >> の混在も複数として扱う', () => {
+    const r = parse(tokens('echo hi >> a > b'))
+    expect(r.ok).toBe(false)
+    if (!r.ok) expect(r.error.message).toContain('multiple stdout redirections')
+  })
 })

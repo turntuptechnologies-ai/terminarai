@@ -20,9 +20,11 @@ describe('Shell', () => {
     expect(nextCwd).toBe('/home/user')
   })
 
-  it('未登録コマンドは command not found (exitCode 127)', () => {
+  it('未登録コマンドは command not found (exitCode 127) で terminarai プレフィックス', () => {
     const { result } = shell.execute('nonexistent', defaultContext())
     expect(result.exitCode).toBe(127)
+    expect(result.stderr).toContain('terminarai:')
+    expect(result.stderr).toContain('nonexistent:')
     expect(result.stderr).toContain('command not found')
   })
 
@@ -156,5 +158,41 @@ describe('Shell', () => {
     const { result } = shell.execute('fail', defaultContext())
     expect(result.exitCode).toBe(42)
     expect(result.stderr).toBe('oops\n')
+  })
+
+  it('handler が throw してもシェルは死なず internal error を返す', () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const boom: CommandHandler = () => {
+      throw new Error('something broke')
+    }
+    shell.register('boom', boom)
+    const { result, nextCwd } = shell.execute('boom', defaultContext('/home/user'))
+    expect(result.exitCode).toBe(1)
+    expect(result.stderr).toContain('internal error')
+    expect(result.stderr).toContain('something broke')
+    expect(nextCwd).toBe('/home/user')
+    consoleSpy.mockRestore()
+  })
+
+  it('> 先がディレクトリなら EISDIR で stderr が出る', () => {
+    const echo: CommandHandler = () => ({ stdout: 'hi\n', stderr: '', exitCode: 0 })
+    shell.register('echo', echo)
+    const { result } = shell.execute('echo hi > /home/user/docs', defaultContext())
+    expect(result.exitCode).toBe(1)
+    expect(result.stderr).toContain('Is a directory')
+  })
+
+  it('複数の stdout リダイレクトはシェル層で syntax error', () => {
+    const echo: CommandHandler = () => ({ stdout: 'hi\n', stderr: '', exitCode: 0 })
+    shell.register('echo', echo)
+    const { result } = shell.execute('echo hi > a > b', defaultContext())
+    expect(result.exitCode).toBe(2)
+    expect(result.stderr).toContain('multiple stdout redirections')
+  })
+
+  it('未対応メタ文字はシェル層で syntax error', () => {
+    const { result } = shell.execute('cat foo | grep x', defaultContext())
+    expect(result.exitCode).toBe(2)
+    expect(result.stderr).toContain('not supported')
   })
 })

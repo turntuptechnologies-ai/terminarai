@@ -13,6 +13,16 @@ export interface CommandResult {
   cwdAfter?: string
 }
 
+/**
+ * コマンドハンドラの契約。
+ *
+ * - **同期関数**として実装する（Promise を返さない）
+ * - **throw しない**。失敗は `CommandResult.exitCode !== 0` と `stderr` で表現する
+ *   （万が一の例外はシェル側で捕捉して `internal error` 扱いになる）
+ * - **stdout / stderr の改行**はハンドラ側で付与する（シェルは付け足さない）
+ * - **cwdAfter**を返す場合は絶対パスにする（シェルはそのまま nextCwd に採用する）
+ * - 副作用は `vfs` への書き込みのみに留める
+ */
 export type CommandHandler = (args: string[], ctx: CommandContext, vfs: Vfs) => CommandResult
 
 export interface ShellExecuteResult {
