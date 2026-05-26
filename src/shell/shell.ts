@@ -1,4 +1,5 @@
 import type { Vfs } from '../vfs'
+import { type CompletionResult, complete as completeImpl } from './completion'
 import { parse } from './parser'
 import { tokenize } from './tokenizer'
 import type {
@@ -44,6 +45,14 @@ class ShellImpl implements Shell {
 
   has(name: string): boolean {
     return this.commands.has(name)
+  }
+
+  commandNames(): string[] {
+    return [...this.commands.keys()].sort()
+  }
+
+  complete(input: string, ctx: CommandContext): CompletionResult {
+    return completeImpl(input, ctx.cwd, this.commands.keys(), this.vfs)
   }
 
   execute(input: string, ctx: CommandContext): ShellExecuteResult {

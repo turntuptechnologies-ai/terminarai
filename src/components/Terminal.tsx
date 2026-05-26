@@ -89,7 +89,34 @@ export function Terminal({ shell, initialCtx, banner = '', onAfterExecute }: Ter
     setDraftBeforeNav('')
   }
 
+  const handleTab = () => {
+    const result = shell.complete(input, ctx)
+    if (result.newInput !== input) {
+      setInput(result.newInput)
+      setHistoryCursor(-1)
+      setDraftBeforeNav('')
+      return
+    }
+    // 入力が変化しないが候補が複数 → 詰まっているので一覧を履歴に表示する
+    if (result.candidates.length > 1) {
+      setHistory((h) => [
+        ...h,
+        {
+          id: nextEntryId(),
+          prompt: { cwd: ctx.cwd, input },
+          stdout: `${result.candidates.join('  ')}\n`,
+          stderr: '',
+        },
+      ])
+    }
+  }
+
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Tab') {
+      e.preventDefault()
+      handleTab()
+      return
+    }
     if (e.key === 'ArrowUp') {
       if (commandHistory.length === 0) return
       e.preventDefault()

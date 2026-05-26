@@ -124,6 +124,45 @@ describe('Terminal', () => {
     expect(input.value).toBe('ls')
   })
 
+  it('Tab で単一マッチのコマンドが補完される (pw → pwd )', async () => {
+    const user = userEvent.setup()
+    render(<Terminal shell={shell} initialCtx={defaultContext('/home/user')} />)
+    const input = screen.getByLabelText('ターミナル入力') as HTMLInputElement
+    await user.type(input, 'pw')
+    await user.keyboard('{Tab}')
+    expect(input.value).toBe('pwd ')
+  })
+
+  it('Tab で単一マッチのパスが補完される (cat REA → cat README.txt )', async () => {
+    const user = userEvent.setup()
+    render(<Terminal shell={shell} initialCtx={defaultContext('/home/user')} />)
+    const input = screen.getByLabelText('ターミナル入力') as HTMLInputElement
+    await user.type(input, 'cat REA')
+    await user.keyboard('{Tab}')
+    expect(input.value).toBe('cat README.txt ')
+  })
+
+  it('Tab でディレクトリは末尾 / が付く (cd do → cd docs/)', async () => {
+    const user = userEvent.setup()
+    render(<Terminal shell={shell} initialCtx={defaultContext('/home/user')} />)
+    const input = screen.getByLabelText('ターミナル入力') as HTMLInputElement
+    await user.type(input, 'cd do')
+    await user.keyboard('{Tab}')
+    expect(input.value).toBe('cd docs/')
+  })
+
+  it('Tab で複数候補時は履歴に候補一覧を表示', async () => {
+    const user = userEvent.setup()
+    render(<Terminal shell={shell} initialCtx={defaultContext('/home/user')} />)
+    const input = screen.getByLabelText('ターミナル入力') as HTMLInputElement
+    await user.type(input, 'c')
+    await user.keyboard('{Tab}')
+    // 入力は変化しない (c は cat/cd/cp の共通プレフィックスで止まる)
+    expect(input.value).toBe('c')
+    // 履歴に候補が表示される
+    expect(await screen.findByText(/cat\s+cd\s+cp/)).toBeInTheDocument()
+  })
+
   it('> リダイレクト経由でファイルが書き込まれ、cat で読める (smoke)', async () => {
     const user = userEvent.setup()
     render(<Terminal shell={shell} initialCtx={defaultContext('/home/user')} />)
