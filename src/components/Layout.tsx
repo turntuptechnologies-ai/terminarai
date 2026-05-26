@@ -5,6 +5,7 @@ const NAV_ITEMS = [
   { to: '/tutorial', label: 'チュートリアル', end: false },
   { to: '/practice', label: '自習問題', end: false },
   { to: '/sandbox', label: 'サンドボックス', end: false },
+  { to: '/reference', label: 'リファレンス', end: false },
 ] as const
 
 function navClass({ isActive }: { isActive: boolean }): string {

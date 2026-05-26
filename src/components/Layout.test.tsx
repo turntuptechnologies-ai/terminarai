@@ -27,7 +27,13 @@ describe('Layout', () => {
 
   it('全てのナビリンクが表示される', () => {
     renderAt('/')
-    for (const label of ['ホーム', 'チュートリアル', '自習問題', 'サンドボックス']) {
+    for (const label of [
+      'ホーム',
+      'チュートリアル',
+      '自習問題',
+      'サンドボックス',
+      'リファレンス',
+    ]) {
       expect(screen.getByRole('link', { name: label })).toBeInTheDocument()
     }
   })

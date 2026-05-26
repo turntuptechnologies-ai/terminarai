@@ -6,6 +6,7 @@ import { LessonPage } from './pages/LessonPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { PracticeIndexPage } from './pages/PracticeIndexPage'
 import { PracticePage } from './pages/PracticePage'
+import { ReferencePage } from './pages/ReferencePage'
 import { SandboxPage } from './pages/SandboxPage'
 import { TutorialIndexPage } from './pages/TutorialIndexPage'
 
@@ -20,6 +21,7 @@ function App() {
         <Route path="/practice" element={<PracticeIndexPage />} />
         <Route path="/practice/:problemId" element={<PracticePage />} />
         <Route path="/sandbox" element={<SandboxPage />} />
+        <Route path="/reference" element={<ReferencePage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

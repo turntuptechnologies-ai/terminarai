@@ -48,6 +48,13 @@ describe('App routing', () => {
     expect(screen.getByRole('heading', { name: /問題: p1/ })).toBeInTheDocument()
   })
 
+  it('/reference で ReferencePage が表示される', () => {
+    renderAt('/reference')
+    expect(
+      screen.getByRole('heading', { name: 'クイックリファレンス', level: 1 }),
+    ).toBeInTheDocument()
+  })
+
   it('未知のパスは 404 ページ', () => {
     renderAt('/this-does-not-exist')
     expect(screen.getByRole('heading', { name: /ページが見つかりません/ })).toBeInTheDocument()
