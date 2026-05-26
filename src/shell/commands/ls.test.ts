@@ -29,11 +29,18 @@ describe('ls', () => {
     expect(r.stderr).toBe('')
   })
 
-  it('存在しないパスはエラー (exitCode 2)', () => {
+  it('存在しないパスはエラー (exitCode 2、GNU と同じ)', () => {
     const r = ls(['/nope'], defaultContext(), vfs)
     expect(r.exitCode).toBe(2)
     expect(r.stderr).toContain("ls: cannot access '/nope'")
     expect(r.stderr).toContain('No such file or directory')
+  })
+
+  it('一部だけ存在しないパスは stderr に出しつつ存在分は表示', () => {
+    const r = ls(['/home/user', '/nope'], defaultContext(), vfs)
+    expect(r.exitCode).toBe(2)
+    expect(r.stdout).toContain('README.txt')
+    expect(r.stderr).toContain("cannot access '/nope'")
   })
 
   it('ファイルを指定するとそのファイルを 1 行で表示', () => {
@@ -60,12 +67,19 @@ describe('ls', () => {
     expect(r.stdout).toContain('.profile')
   })
 
-  it('-l で詳細表示', () => {
+  it('-l で詳細表示 + 先頭に total 行', () => {
     const r = ls(['-l'], defaultContext('/home/user'), vfs)
+    expect(r.stdout).toMatch(/^total \d+\n/)
     expect(r.stdout).toContain('-rw-r--r-- 1 user user')
     expect(r.stdout).toContain('drwxr-xr-x 1 user user')
     expect(r.stdout).toContain('README.txt')
     expect(r.stdout).toContain('docs')
+  })
+
+  it('-l で空ディレクトリは total 0 のみ', () => {
+    vfs.mkdir('/home/user/empty')
+    const r = ls(['-l', '/home/user/empty'], defaultContext(), vfs)
+    expect(r.stdout).toBe('total 0\n')
   })
 
   it('-la でフラグ結合', () => {
@@ -82,10 +96,20 @@ describe('ls', () => {
     expect(r.stdout).toContain('README.txt')
   })
 
-  it('未知フラグはエラー', () => {
+  it('ファイル + ディレクトリ混在時はファイル先、空行、dir ヘッダの順', () => {
+    const r = ls(['/home/user/hello.txt', '/home/user'], defaultContext(), vfs)
+    expect(r.exitCode).toBe(0)
+    const lines = r.stdout.split('\n')
+    expect(lines[0]).toBe('/home/user/hello.txt')
+    expect(lines[1]).toBe('') // 空行
+    expect(lines[2]).toBe('/home/user:')
+  })
+
+  it('未知フラグはエラー + Try --help 案内', () => {
     const r = ls(['-Z'], defaultContext(), vfs)
     expect(r.exitCode).toBe(2)
     expect(r.stderr).toContain("invalid option -- 'Z'")
+    expect(r.stderr).toContain("Try 'ls --help'")
   })
 
   it('-- 以降はフラグとして扱わない', () => {

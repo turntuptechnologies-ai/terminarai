@@ -18,6 +18,8 @@ interface ParseError {
   message: string
 }
 
+const HELP_HINT = "Try 'ls --help' for more information.\n"
+
 function parseArgs(args: string[]): ParsedArgs | ParseError {
   const flags: LsFlags = { long: false, all: false }
   const positional: string[] = []
@@ -38,7 +40,7 @@ function parseArgs(args: string[]): ParsedArgs | ParseError {
         else {
           return {
             ok: false,
-            message: `ls: invalid option -- '${c}'\n`,
+            message: `ls: invalid option -- '${c}'\n${HELP_HINT}`,
           }
         }
       }
@@ -59,11 +61,26 @@ function renderEntry(node: VfsNode, displayName: string, flags: LsFlags): string
   return `${mode} 1 user user ${size} ${mtime} ${displayName}`
 }
 
+/** `ls -l` 先頭の "total N" を計算する。N は 1KB ブロック数の総和の近似。 */
+function totalBlocks(entries: readonly VfsNode[]): number {
+  return entries.reduce((acc, e) => acc + Math.ceil(fileSize(e) / 1024), 0)
+}
+
 /**
  * ls — ファイル / ディレクトリの内容を表示。
  *
  * 対応フラグ: `-l` (詳細表示), `-a` / `-A` (隠しファイルも表示)。
  * デフォルトは 1 行 1 エントリ (GNU の `ls -1` 相当)。
+ *
+ * 出力順は GNU 互換:
+ * 1. 不可アクセス対象は stderr へ
+ * 2. ファイル単体ターゲットは先に並べる
+ * 3. ディレクトリは `target:` ヘッダ付きで列挙 (ファイルとの混在時 or 2 つ以上のとき)
+ *
+ * exitCode:
+ * - 0: 全成功
+ * - 2: parseArgs 失敗 / コマンドライン引数の path が解決できない
+ *      (GNU の `ls /nope` 実挙動と同じ)
  */
 export const ls: CommandHandler = (args, ctx, vfs): CommandResult => {
   const parsed = parseArgs(args)
@@ -73,58 +90,57 @@ export const ls: CommandHandler = (args, ctx, vfs): CommandResult => {
   const { flags, positional } = parsed
   const targets = positional.length === 0 ? [ctx.cwd] : positional
 
-  let stdout = ''
-  let stderr = ''
   let exitCode = 0
+  const errors: Array<{ target: string; message: string }> = []
+  const files: Array<{ target: string; node: VfsNode }> = []
+  const dirs: Array<{ target: string; entries: VfsNode[] }> = []
 
-  type Entry =
-    | { kind: 'error'; target: string; message: string }
-    | { kind: 'file'; target: string; node: VfsNode }
-    | { kind: 'dir'; target: string; entries: VfsNode[] }
-
-  const sections: Entry[] = []
   for (const target of targets) {
     const abs = vfs.resolve(ctx.cwd, target)
     const stat = vfs.stat(abs)
     if (!stat.ok) {
-      sections.push({ kind: 'error', target, message: stat.error.message })
+      errors.push({ target, message: stat.error.message })
       exitCode = 2
       continue
     }
     if (stat.value.type === 'file') {
-      sections.push({ kind: 'file', target, node: stat.value })
+      files.push({ target, node: stat.value })
       continue
     }
     const listRes = vfs.list(abs)
     if (!listRes.ok) {
-      sections.push({ kind: 'error', target, message: listRes.error.message })
+      errors.push({ target, message: listRes.error.message })
       exitCode = 2
       continue
     }
-    sections.push({ kind: 'dir', target, entries: listRes.value })
+    dirs.push({ target, entries: listRes.value })
   }
 
-  const multiTarget = targets.length > 1
-  let firstSection = true
+  let stdout = ''
+  let stderr = ''
 
-  for (const section of sections) {
-    if (section.kind === 'error') {
-      stderr += `ls: cannot access '${section.target}': ${section.message}\n`
-      continue
-    }
-    if (section.kind === 'file') {
-      stdout += `${renderEntry(section.node, section.target, flags)}\n`
-      firstSection = false
-      continue
-    }
-    if (multiTarget) {
-      if (!firstSection) stdout += '\n'
-      stdout += `${section.target}:\n`
-    }
-    firstSection = false
+  for (const e of errors) {
+    stderr += `ls: cannot access '${e.target}': ${e.message}\n`
+  }
 
-    const filtered = flags.all ? section.entries : section.entries.filter((e) => !isHidden(e.name))
+  for (const f of files) {
+    stdout += `${renderEntry(f.node, f.target, flags)}\n`
+  }
+
+  const showDirHeader = dirs.length > 1 || (dirs.length >= 1 && files.length > 0)
+
+  for (let idx = 0; idx < dirs.length; idx++) {
+    const d = dirs[idx]
+    if (showDirHeader) {
+      // ファイルセクションが先にあれば必ず空行、ディレクトリ同士の間も空行
+      if (idx > 0 || files.length > 0) stdout += '\n'
+      stdout += `${d.target}:\n`
+    }
+    const filtered = flags.all ? d.entries : d.entries.filter((e) => !isHidden(e.name))
     const sorted = [...filtered].sort((a, b) => compareName(a.name, b.name))
+    if (flags.long) {
+      stdout += `total ${totalBlocks(sorted)}\n`
+    }
     for (const entry of sorted) {
       stdout += `${renderEntry(entry, entry.name, flags)}\n`
     }

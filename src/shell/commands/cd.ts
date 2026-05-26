@@ -1,11 +1,13 @@
+import { HOME_PATH } from '../../vfs'
 import type { CommandHandler } from '../types'
 
 /**
  * cd — ディレクトリ移動。
  *
- * - 引数なし / `~` → ホーム (`ctx.env.HOME`)
+ * - 引数なし / `~` → ホーム (`ctx.env.HOME`、未設定なら HOME_PATH)
  * - 絶対パス・相対パス・`~/...` を許容 (resolve に任せる)
- * - `cd -` (OLDPWD) は MVP 未対応 (followup Issue #11 で対応予定)
+ * - `cd -` (OLDPWD) は MVP 未対応。「未設定」と誤解されないよう明示エラー (followup Issue #11)
+ * - `~user` 等のユーザ展開は未対応 (terminarai は単一ユーザ前提)
  */
 export const cd: CommandHandler = (args, ctx, vfs) => {
   if (args.length > 1) {
@@ -18,11 +20,18 @@ export const cd: CommandHandler = (args, ctx, vfs) => {
 
   let target: string
   if (args.length === 0 || args[0] === '~') {
-    target = ctx.env.HOME ?? '/home/user'
+    target = ctx.env.HOME ?? HOME_PATH
   } else if (args[0] === '-') {
     return {
       stdout: '',
-      stderr: 'cd: OLDPWD not set\n',
+      stderr: "cd: '-' (OLDPWD) は MVP 未対応です (Issue #11 で対応予定)\n",
+      exitCode: 1,
+    }
+  } else if (args[0] === '') {
+    // bash: `cd ''` は ENOENT (resolve は cwd を返してしまうので個別判定)
+    return {
+      stdout: '',
+      stderr: 'cd: : No such file or directory\n',
       exitCode: 1,
     }
   } else {

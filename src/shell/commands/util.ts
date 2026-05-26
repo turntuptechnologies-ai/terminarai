@@ -23,9 +23,12 @@ export function formatMtime(mtime: number): string {
   return `${month} ${day} ${hh}:${mm}`
 }
 
-/** ノードの表示用サイズ (ディレクトリは 4096 固定、ファイルは content.length)。 */
+/** ディレクトリの表示用サイズ (実 ext4 では typical な値)。 */
+export const DEFAULT_DIR_SIZE = 4096
+
+/** ノードの表示用サイズ (ディレクトリは固定値、ファイルは content.length)。 */
 export function fileSize(node: VfsNode): number {
-  return node.type === 'directory' ? 4096 : node.content.length
+  return node.type === 'directory' ? DEFAULT_DIR_SIZE : node.content.length
 }
 
 /** 名前が hidden (`.` で始まる) か判定。 */

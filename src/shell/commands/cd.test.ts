@@ -61,9 +61,43 @@ describe('cd', () => {
     expect(r.stderr).toContain('too many arguments')
   })
 
-  it('cd - は OLDPWD not set (MVPでは未対応)', () => {
+  it('cd - は明示的に MVP 未対応エラー', () => {
     const r = cd(['-'], defaultContext(), vfs)
     expect(r.exitCode).toBe(1)
-    expect(r.stderr).toContain('OLDPWD not set')
+    expect(r.stderr).toContain('MVP 未対応')
+    expect(r.stderr).toContain('#11')
+  })
+
+  it('cd / でルートへ移動', () => {
+    const r = cd(['/'], defaultContext('/home/user'), vfs)
+    expect(r.cwdAfter).toBe('/')
+  })
+
+  it('cd . で現在地そのまま', () => {
+    const r = cd(['.'], defaultContext('/home/user'), vfs)
+    expect(r.cwdAfter).toBe('/home/user')
+  })
+
+  it('cd ../.. はルートで止まる', () => {
+    const r = cd(['../..'], defaultContext('/'), vfs)
+    expect(r.cwdAfter).toBe('/')
+  })
+
+  it('cd "" (空文字列) は ENOENT (bash 挙動)', () => {
+    const r = cd([''], defaultContext(), vfs)
+    expect(r.exitCode).toBe(1)
+    expect(r.stderr).toContain('No such file or directory')
+  })
+
+  it('中間パスがファイル → Not a directory', () => {
+    const r = cd(['/home/user/README.txt/sub'], defaultContext(), vfs)
+    expect(r.exitCode).toBe(1)
+    expect(r.stderr).toContain('Not a directory')
+  })
+
+  it('env.HOME 欠落時は HOME_PATH にフォールバック', () => {
+    const ctxNoHome = { cwd: '/tmp', env: {} }
+    const r = cd([], ctxNoHome, vfs)
+    expect(r.cwdAfter).toBe('/home/user')
   })
 })
