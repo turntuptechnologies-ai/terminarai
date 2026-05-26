@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router-dom'
 import { Layout } from './components/Layout'
+import { ChapterIndexPage } from './pages/ChapterIndexPage'
 import { HomePage } from './pages/HomePage'
 import { LessonPage } from './pages/LessonPage'
 import { NotFoundPage } from './pages/NotFoundPage'
@@ -14,6 +15,7 @@ function App() {
       <Route element={<Layout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/tutorial" element={<TutorialIndexPage />} />
+        <Route path="/tutorial/:chapterId" element={<ChapterIndexPage />} />
         <Route path="/tutorial/:chapterId/:lessonId" element={<LessonPage />} />
         <Route path="/practice" element={<PracticeIndexPage />} />
         <Route path="/practice/:problemId" element={<PracticePage />} />

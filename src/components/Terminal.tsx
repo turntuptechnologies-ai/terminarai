@@ -1,5 +1,5 @@
 import { type FormEvent, type KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react'
-import type { CommandContext, Shell } from '../shell'
+import type { CommandContext, CommandResult, Shell } from '../shell'
 import { Prompt } from './Prompt'
 
 interface TerminalProps {
@@ -7,6 +7,12 @@ interface TerminalProps {
   initialCtx: CommandContext
   /** 初期表示時のバナー文字列 (空文字なら表示しない)。 */
   banner?: string
+  /**
+   * コマンド実行直後に呼ばれるフック。
+   * 引数の `ctxAfter` は cwd/env が更新された後のコンテキスト。
+   * 状態更新前に同期的に呼ばれる (レッスンエンジンの check 評価に使う)。
+   */
+  onAfterExecute?: (input: string, result: CommandResult, ctxAfter: CommandContext) => void
 }
 
 interface HistoryEntry {
@@ -17,7 +23,7 @@ interface HistoryEntry {
   stderr: string
 }
 
-export function Terminal({ shell, initialCtx, banner = '' }: TerminalProps) {
+export function Terminal({ shell, initialCtx, banner = '', onAfterExecute }: TerminalProps) {
   // エントリ ID は React の key 安定性のためインスタンスローカルに管理する
   const idCounterRef = useRef(0)
   const nextEntryId = () => ++idCounterRef.current
@@ -60,6 +66,9 @@ export function Terminal({ shell, initialCtx, banner = '' }: TerminalProps) {
       return
     }
     const { result, nextCwd } = shell.execute(input, ctx)
+    const ctxAfter: CommandContext =
+      nextCwd !== ctx.cwd ? { ...ctx, cwd: nextCwd, env: { ...ctx.env, PWD: nextCwd } } : ctx
+
     setHistory((h) => [
       ...h,
       {
@@ -70,8 +79,11 @@ export function Terminal({ shell, initialCtx, banner = '' }: TerminalProps) {
       },
     ])
     if (nextCwd !== ctx.cwd) {
-      setCtx({ ...ctx, cwd: nextCwd, env: { ...ctx.env, PWD: nextCwd } })
+      setCtx(ctxAfter)
     }
+
+    onAfterExecute?.(input, result, ctxAfter)
+
     setInput('')
     setHistoryCursor(-1)
     setDraftBeforeNav('')

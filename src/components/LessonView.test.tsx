@@ -1,0 +1,107 @@
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import type { Lesson } from '../lessons'
+import { loadProgress } from '../lessons'
+import { LessonView } from './LessonView'
+
+function makeLesson(over: Partial<Lesson> = {}): Lesson {
+  return {
+    id: 'test-lesson',
+    chapterId: '1',
+    title: 'テスト用レッスン',
+    description: 'テスト用の説明文',
+    steps: [
+      {
+        instruction: 'まず pwd を実行してください',
+        check: { kind: 'command-matches', pattern: '^pwd$' },
+        hint: 'pwd と入力して Enter',
+      },
+      {
+        instruction: 'docs ディレクトリに移動してください',
+        check: { kind: 'cwd-equals', path: '/home/user/docs' },
+      },
+    ],
+    ...over,
+  }
+}
+
+describe('LessonView', () => {
+  beforeEach(() => {
+    window.localStorage.clear()
+  })
+
+  afterEach(() => {
+    window.localStorage.clear()
+  })
+
+  it('タイトル・説明・最初のステップが表示される', () => {
+    render(<LessonView lesson={makeLesson()} />)
+    expect(screen.getByRole('heading', { name: 'テスト用レッスン' })).toBeInTheDocument()
+    expect(screen.getByText('テスト用の説明文')).toBeInTheDocument()
+    expect(screen.getByText(/まず pwd を実行/)).toBeInTheDocument()
+    expect(screen.getByText(/ステップ 1 \/ 2/)).toBeInTheDocument()
+  })
+
+  it('ヒントボタンでヒントが表示・非表示', async () => {
+    const user = userEvent.setup()
+    render(<LessonView lesson={makeLesson()} />)
+    const button = screen.getByRole('button', { name: 'ヒントを見る' })
+    await user.click(button)
+    expect(screen.getByText('pwd と入力して Enter')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'ヒントを隠す' }))
+    expect(screen.queryByText('pwd と入力して Enter')).not.toBeInTheDocument()
+  })
+
+  it('ステップを満たすコマンドを実行すると次に進む', async () => {
+    const user = userEvent.setup()
+    render(<LessonView lesson={makeLesson()} />)
+    const input = screen.getByLabelText('ターミナル入力')
+    await user.type(input, 'pwd{Enter}')
+    expect(await screen.findByText(/ステップ 2 \/ 2/)).toBeInTheDocument()
+    expect(screen.getByText(/docs ディレクトリに移動/)).toBeInTheDocument()
+  })
+
+  it('全ステップ完了で完了メッセージ + onComplete 呼び出し', async () => {
+    const user = userEvent.setup()
+    let completedCalls = 0
+    render(<LessonView lesson={makeLesson()} onComplete={() => completedCalls++} />)
+    const input = screen.getByLabelText('ターミナル入力')
+    await user.type(input, 'pwd{Enter}')
+    await user.type(input, 'cd docs{Enter}')
+    expect(await screen.findByText(/全てのステップをクリア/)).toBeInTheDocument()
+    expect(completedCalls).toBe(1)
+  })
+
+  it('完了状態は localStorage に保存される', async () => {
+    const user = userEvent.setup()
+    render(<LessonView lesson={makeLesson()} />)
+    const input = screen.getByLabelText('ターミナル入力')
+    await user.type(input, 'pwd{Enter}')
+    const after1 = loadProgress('test-lesson')
+    expect(after1?.completedSteps).toBe(1)
+    expect(after1?.completed).toBe(false)
+    await user.type(input, 'cd docs{Enter}')
+    const after2 = loadProgress('test-lesson')
+    expect(after2?.completed).toBe(true)
+  })
+
+  it('Check を満たさないコマンドは進捗が変わらない', async () => {
+    const user = userEvent.setup()
+    render(<LessonView lesson={makeLesson()} />)
+    const input = screen.getByLabelText('ターミナル入力')
+    await user.type(input, 'ls{Enter}')
+    expect(screen.getByText(/ステップ 1 \/ 2/)).toBeInTheDocument()
+  })
+
+  it('ステップ進行でヒント表示がリセットされる', async () => {
+    const user = userEvent.setup()
+    render(<LessonView lesson={makeLesson()} />)
+    await user.click(screen.getByRole('button', { name: 'ヒントを見る' }))
+    expect(screen.getByText('pwd と入力して Enter')).toBeInTheDocument()
+    const input = screen.getByLabelText('ターミナル入力')
+    await user.type(input, 'pwd{Enter}')
+    // ステップ 2 にはヒントが無い (makeLesson 構成)
+    expect(screen.queryByText('pwd と入力して Enter')).not.toBeInTheDocument()
+  })
+})
