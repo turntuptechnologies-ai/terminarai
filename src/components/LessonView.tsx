@@ -157,8 +157,10 @@ export function LessonView({ lesson, onComplete }: LessonViewProps) {
                 hints={currentStep.hints}
                 revealed={revealedHints}
                 onReveal={() => {
-                  if (!currentStep.hints) return
-                  setRevealedHints((n) => (n < currentStep.hints.length ? n + 1 : 0))
+                  // narrowing が closure 内で失われるためローカル const に退避
+                  const hs = currentStep.hints
+                  if (!hs) return
+                  setRevealedHints((n) => (n < hs.length ? n + 1 : 0))
                 }}
               />
             )}
