@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
-/* Tailwind v4 が生成する --font-mono を Cascadia Code 優先に上書きする。
- * font-mono Tailwind utility (Terminal で使用) がこの値を参照する。 */
+/* Tailwind v4 の --font-sans / --font-mono を上書きする。
+ * - --font-sans は html 要素の default-font-family が参照するので UI 全体に効く
+ * - --font-mono は font-mono utility (Terminal で使用) が参照する */
 :root {
+  --font-sans:
+    "Inter", "Noto Sans JP", system-ui, -apple-system, "Segoe UI", "Hiragino Kaku Gothic ProN",
+    "Hiragino Sans", "Yu Gothic", Meiryo, sans-serif;
   --font-mono:
     "Cascadia Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
