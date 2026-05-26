@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { FormattedText } from '../components/FormattedText'
 import { CHAPTERS, type ChapterStatus, computeChapterProgress } from '../lessons'
 
 const STATUS_LABEL: Record<ChapterStatus, string> = {
@@ -41,7 +42,9 @@ export function TutorialIndexPage() {
                       第 {ch.id} 章
                     </p>
                     <h2 className="mt-1 font-semibold text-zinc-100">{ch.title}</h2>
-                    <p className="mt-2 text-sm text-zinc-400 leading-relaxed">{ch.description}</p>
+                    <p className="mt-2 text-sm text-zinc-400 leading-relaxed">
+                      <FormattedText text={ch.description} />
+                    </p>
                     <div className="mt-3 flex items-center justify-between text-xs">
                       <span className="text-zinc-500">全 {ch.lessons.length} レッスン</span>
                       <span className={STATUS_CLASS[progress.status]}>
