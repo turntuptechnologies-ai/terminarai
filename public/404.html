@@ -2,34 +2,20 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
+    <!-- CSP (defense in depth) — index.html と揃える -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'"
+    />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>terminarai — リダイレクト中</title>
-    <script>
-      // GitHub Pages SPA fallback (rafrex/spa-github-pages 方式)
-      // /terminarai/<path> に直接アクセスされると Pages は 404 を返すので、
-      // パスを query string に詰めて /terminarai/ にリダイレクトする。
-      // index.html 側のスクリプトが復元する。
-      ;(function () {
-        var pathSegmentsToKeep = 1 // /terminarai/ の深さ
-        var l = window.location
-        l.replace(
-          l.protocol +
-            '//' +
-            l.hostname +
-            (l.port ? ':' + l.port : '') +
-            l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') +
-            '/?/' +
-            l.pathname
-              .slice(1)
-              .split('/')
-              .slice(pathSegmentsToKeep)
-              .join('/')
-              .replace(/&/g, '~and~') +
-            (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
-            l.hash,
-        )
-      })()
-    </script>
+    <!--
+      GitHub Pages SPA fallback のリダイレクト処理。
+      CSP の script-src 'self' を満たすため外部ファイル化している。
+      sibling 配置のため相対パスで参照 (deploy base path に依存しない)。
+    -->
+    <script src="./404-redirect.js"></script>
   </head>
   <body></body>
 </html>

@@ -2,6 +2,17 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
+    <!--
+      CSP (defense in depth)
+      - script-src 'self' のみ (no unsafe-inline) — インライン script は外部化済み
+      - style-src は 'unsafe-inline' を許容 (React の style props のため、回避困難)
+      - frame-ancestors は meta タグでは無視されるため未指定 (HTTP ヘッダ専用)
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'"
+    />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="terminarai — Linux CLI 見習い道場。仮想シェルでコマンドを練習する学習サイト。" />
@@ -19,23 +30,12 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Cascadia+Code:wght@400;500&family=Inter:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600&display=swap"
     />
-    <script>
-      // GitHub Pages SPA fallback の復元側
-      // 404.html がパスを ?/<path> 形式にしてリダイレクトしてくるので、
-      // history.replaceState で元の URL に戻す。
-      ;(function (l) {
-        if (l.search && l.search[1] === '/') {
-          var decoded = l.search
-            .slice(1)
-            .split('&')
-            .map(function (s) {
-              return s.replace(/~and~/g, '&')
-            })
-            .join('?')
-          window.history.replaceState(null, '', l.pathname.slice(0, -1) + decoded + l.hash)
-        }
-      })(window.location)
-    </script>
+    <!--
+      SPA fallback の復元 (404.html → /?/<path> → 元の URL に戻す)
+      React Router 初期化前に同期的に走らせる必要があるため、defer/module でなく通常 script。
+      CSP の script-src 'self' を満たすため外部ファイル化している。
+    -->
+    <script src="/spa-restore.js"></script>
   </head>
   <body>
     <div id="root"></div>
