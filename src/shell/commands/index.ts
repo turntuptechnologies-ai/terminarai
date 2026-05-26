@@ -1,6 +1,7 @@
 import type { Shell } from '../types'
 import { cat } from './cat'
 import { cd } from './cd'
+import { clear } from './clear'
 import { cp } from './cp'
 import { echo } from './echo'
 import { ls } from './ls'
@@ -13,6 +14,7 @@ import { touch } from './touch'
 
 export { cat } from './cat'
 export { cd } from './cd'
+export { clear } from './clear'
 export { cp } from './cp'
 export { echo } from './echo'
 export { ls } from './ls'
@@ -26,6 +28,7 @@ export { touch } from './touch'
 export function registerAllCommands(shell: Shell): void {
   shell.register('cat', cat)
   shell.register('cd', cd)
+  shell.register('clear', clear)
   shell.register('cp', cp)
   shell.register('echo', echo)
   shell.register('ls', ls)

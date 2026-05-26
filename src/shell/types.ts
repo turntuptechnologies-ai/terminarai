@@ -12,6 +12,11 @@ export interface CommandResult {
   exitCode: number
   /** cd だけが使う。他のコマンドは undefined のまま。 */
   cwdAfter?: string
+  /**
+   * clear コマンドが画面クリアを要求するためのシグナル。
+   * Terminal がこれを見て履歴を空にする。リダイレクト時も保持される。
+   */
+  clearScreen?: boolean
 }
 
 /**
