@@ -1,5 +1,17 @@
 import { Link } from 'react-router-dom'
-import { CHAPTERS } from '../lessons'
+import { CHAPTERS, type ChapterStatus, computeChapterProgress } from '../lessons'
+
+const STATUS_LABEL: Record<ChapterStatus, string> = {
+  untouched: '未着手',
+  'in-progress': '進行中',
+  completed: '完了',
+}
+
+const STATUS_CLASS: Record<ChapterStatus, string> = {
+  untouched: 'text-zinc-500',
+  'in-progress': 'text-sky-400',
+  completed: 'text-emerald-400',
+}
 
 export function TutorialIndexPage() {
   return (
@@ -17,19 +29,29 @@ export function TutorialIndexPage() {
           </div>
         ) : (
           <ol className="mt-8 space-y-3">
-            {CHAPTERS.map((ch) => (
-              <li key={ch.id}>
-                <Link
-                  to={`/tutorial/${ch.id}`}
-                  className="block rounded-lg border border-zinc-800 p-5 transition-colors hover:border-emerald-500/60 hover:bg-zinc-900"
-                >
-                  <p className="text-emerald-400 text-xs uppercase tracking-wide">第 {ch.id} 章</p>
-                  <h2 className="mt-1 font-semibold text-zinc-100">{ch.title}</h2>
-                  <p className="mt-2 text-sm text-zinc-400 leading-relaxed">{ch.description}</p>
-                  <p className="mt-2 text-xs text-zinc-500">全 {ch.lessons.length} レッスン</p>
-                </Link>
-              </li>
-            ))}
+            {CHAPTERS.map((ch) => {
+              const progress = computeChapterProgress(ch)
+              return (
+                <li key={ch.id}>
+                  <Link
+                    to={`/tutorial/${ch.id}`}
+                    className="block rounded-lg border border-zinc-800 p-5 transition-colors hover:border-emerald-500/60 hover:bg-zinc-900"
+                  >
+                    <p className="text-emerald-400 text-xs uppercase tracking-wide">
+                      第 {ch.id} 章
+                    </p>
+                    <h2 className="mt-1 font-semibold text-zinc-100">{ch.title}</h2>
+                    <p className="mt-2 text-sm text-zinc-400 leading-relaxed">{ch.description}</p>
+                    <div className="mt-3 flex items-center justify-between text-xs">
+                      <span className="text-zinc-500">全 {ch.lessons.length} レッスン</span>
+                      <span className={STATUS_CLASS[progress.status]}>
+                        {STATUS_LABEL[progress.status]} ({progress.completed} / {progress.total})
+                      </span>
+                    </div>
+                  </Link>
+                </li>
+              )
+            })}
           </ol>
         )}
       </div>
