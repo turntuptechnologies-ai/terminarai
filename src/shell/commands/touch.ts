@@ -3,10 +3,13 @@ import type { CommandHandler } from '../types'
 /**
  * touch — 空ファイルを作成、または既存ファイルの mtime を更新する。
  *
- * - 既存ファイル: 同じ内容で書き直すことで mtime が更新される
- * - 既存ディレクトリ: VFS が mtime のみ更新する API を持たないため no-op で成功扱い
- *   (現実の `touch` はディレクトリの mtime を更新する。差分は Issue #13 で追跡)
- * - GNU touch の `-a` / `-m` / `-r` / `-t` 等は MVP 未対応
+ * - 既存ファイル: 同じ内容で `writeFile` することで mtime が更新される。
+ *   既知の副作用: 親ディレクトリの mtime も巻き込みで更新されてしまう (実 touch は親を触らない)。
+ *   `VFS.updateMtime` API 追加で根治予定 (Issue #13)。
+ * - 既存ディレクトリ: VFS が mtime のみ更新する API を持たないため no-op で成功扱い (Issue #13)。
+ * - GNU touch の `-a` / `-m` / `-r` / `-t` 等は MVP 未対応。
+ * - 現状フラグを一切認識しないため、`-x` のような引数も**ファイル名扱い**になる。
+ *   PR C 以降でフラグを追加するときに方針を見直す。
  */
 export const touch: CommandHandler = (args, ctx, vfs) => {
   if (args.length === 0) {

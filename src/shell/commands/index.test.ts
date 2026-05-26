@@ -35,7 +35,7 @@ describe('registerAllCommands', () => {
     expect(lsResult.result.stdout).toBe('README.txt\ndocs\nhello.txt\n')
   })
 
-  it('echo > file → cat file の往復で実体が書き込まれる', () => {
+  it('echo の出力が Shell Engine の > リダイレクト経由で書き込まれる (smoke)', () => {
     const vfs = createDefaultVfs()
     const shell = createShell(vfs)
     registerAllCommands(shell)

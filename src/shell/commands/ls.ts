@@ -1,5 +1,6 @@
 import type { VfsNode } from '../../vfs'
 import type { CommandHandler, CommandResult } from '../types'
+import { invalidOptionError, parseShortFlags } from './parse-args'
 import { compareName, fileSize, formatMode, formatMtime, isHidden } from './util'
 
 interface LsFlags {
@@ -18,37 +19,19 @@ interface ParseError {
   message: string
 }
 
-const HELP_HINT = "Try 'ls --help' for more information.\n"
-
 function parseArgs(args: string[]): ParsedArgs | ParseError {
-  const flags: LsFlags = { long: false, all: false }
-  const positional: string[] = []
-  let endFlags = false
-  for (const arg of args) {
-    if (endFlags) {
-      positional.push(arg)
-      continue
-    }
-    if (arg === '--') {
-      endFlags = true
-      continue
-    }
-    if (arg.startsWith('-') && arg.length > 1) {
-      for (const c of arg.slice(1)) {
-        if (c === 'l') flags.long = true
-        else if (c === 'a' || c === 'A') flags.all = true
-        else {
-          return {
-            ok: false,
-            message: `ls: invalid option -- '${c}'\n${HELP_HINT}`,
-          }
-        }
-      }
-      continue
-    }
-    positional.push(arg)
+  const parsed = parseShortFlags(args, 'laA')
+  if (!parsed.ok) {
+    return { ok: false, message: invalidOptionError('ls', parsed.invalidFlag) }
   }
-  return { ok: true, flags, positional }
+  return {
+    ok: true,
+    flags: {
+      long: parsed.flags.has('l'),
+      all: parsed.flags.has('a') || parsed.flags.has('A'),
+    },
+    positional: parsed.positional,
+  }
 }
 
 function renderEntry(node: VfsNode, displayName: string, flags: LsFlags): string {

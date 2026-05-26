@@ -3,8 +3,10 @@
  *
  * - `-l` `-la` `-l -a` を同等に扱う (クラスタリング対応)
  * - `--` 以降はすべて positional 扱い
+ * - 単独 `-` (例: `cat -`) は positional として通す (stdin sentinel の慣習)
  * - 未知のフラグ文字を検出したら ParseError を返す (どの文字が悪かったかを保持)
- * - 長フラグ (`--long`) は MVP では未対応 (将来 ParseResult に拡張する余地を残す)
+ * - 長フラグ (`--long`) と値付きオプション (`-n 5`, `--lines=5`) は MVP 未対応
+ *   将来 `ParseResult` に `values: Map<string, string>` を足して破壊変更する可能性あり
  */
 
 export type ParseResult =

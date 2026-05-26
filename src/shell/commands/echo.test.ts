@@ -32,6 +32,16 @@ describe('echo', () => {
     expect(r.stdout).toBe('hello -n world\n')
   })
 
+  it('連続する -n は全て吸収される (GNU echo の builtin 互換)', () => {
+    const r = echo(['-n', '-n', 'hello'], defaultContext(), vfs)
+    expect(r.stdout).toBe('hello')
+  })
+
+  it('クォート済みの内部空白は維持される', () => {
+    const r = echo(['hello   world'], defaultContext(), vfs)
+    expect(r.stdout).toBe('hello   world\n')
+  })
+
   it('-- はそのまま出力 (bash 互換、特別扱いしない)', () => {
     const r = echo(['--', 'foo'], defaultContext(), vfs)
     expect(r.stdout).toBe('-- foo\n')

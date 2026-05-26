@@ -4,6 +4,7 @@ import { cd } from './cd'
 import { echo } from './echo'
 import { ls } from './ls'
 import { mkdir } from './mkdir'
+// parse-args は内部ヘルパ。意図的に re-export しない (必要になれば追加)
 import { pwd } from './pwd'
 import { touch } from './touch'
 

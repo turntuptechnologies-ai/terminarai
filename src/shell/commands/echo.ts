@@ -10,12 +10,13 @@ import type { CommandHandler } from '../types'
  */
 export const echo: CommandHandler = (args) => {
   let noNewline = false
-  let positional = args
-  if (args[0] === '-n') {
+  let i = 0
+  // 先頭の連続する `-n` をすべて吸収 (GNU echo の builtin 挙動と同等)
+  while (i < args.length && args[i] === '-n') {
     noNewline = true
-    positional = args.slice(1)
+    i++
   }
-  const text = positional.join(' ')
+  const text = args.slice(i).join(' ')
   return {
     stdout: noNewline ? text : `${text}\n`,
     stderr: '',

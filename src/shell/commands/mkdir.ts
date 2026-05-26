@@ -10,7 +10,8 @@ import { invalidOptionError, parseShortFlags } from './parse-args'
 export const mkdir: CommandHandler = (args, ctx, vfs) => {
   const parsed = parseShortFlags(args, 'p')
   if (!parsed.ok) {
-    return { stdout: '', stderr: invalidOptionError('mkdir', parsed.invalidFlag), exitCode: 2 }
+    // GNU mkdir は parse error も missing operand も exit 1 で揃える (ls の exit 2 とは異なる)
+    return { stdout: '', stderr: invalidOptionError('mkdir', parsed.invalidFlag), exitCode: 1 }
   }
   const recursive = parsed.flags.has('p')
   const targets = parsed.positional

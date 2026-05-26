@@ -46,11 +46,17 @@ describe('mkdir', () => {
     expect(r.stderr).toContain('missing operand')
   })
 
-  it('未知フラグは exit 2 + Try help 案内', () => {
+  it('未知フラグは exit 1 (GNU mkdir 挙動) + Try help 案内', () => {
     const r = mkdir(['-Z', '/x'], defaultContext(), vfs)
-    expect(r.exitCode).toBe(2)
+    expect(r.exitCode).toBe(1)
     expect(r.stderr).toContain("invalid option -- 'Z'")
     expect(r.stderr).toContain("Try 'mkdir --help'")
+  })
+
+  it('-p なしで親が存在しないと ENOENT (exit 1)', () => {
+    const r = mkdir(['/no/such/parent/x'], defaultContext(), vfs)
+    expect(r.exitCode).toBe(1)
+    expect(r.stderr).toContain('No such file or directory')
   })
 
   it('一部失敗してもほかは続行 + exit 1', () => {

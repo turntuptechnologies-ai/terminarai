@@ -37,10 +37,16 @@ describe('cat', () => {
     expect(r.stderr).toContain('No such file or directory')
   })
 
-  it('ディレクトリは EISDIR', () => {
+  it('ディレクトリは EISDIR + prefix も確認', () => {
     const r = cat(['/home/user/docs'], defaultContext(), vfs)
     expect(r.exitCode).toBe(1)
-    expect(r.stderr).toContain('Is a directory')
+    expect(r.stderr).toContain('cat: /home/user/docs: Is a directory')
+  })
+
+  it('cat - (stdin sentinel) は学習者向け案内を出す', () => {
+    const r = cat(['-'], defaultContext(), vfs)
+    expect(r.exitCode).toBe(1)
+    expect(r.stderr).toContain('cat: -: stdin reading is not supported')
   })
 
   it('一部失敗 + 一部成功でも続行', () => {
