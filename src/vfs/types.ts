@@ -56,7 +56,10 @@ export interface Vfs {
   mkdir(path: string, opts?: { recursive?: boolean }): VfsResult<void>
 
   // --- delete ---
+  /** ファイルを削除する。ディレクトリは `recursive: true` で再帰削除可。 */
   remove(path: string, opts?: { recursive?: boolean }): VfsResult<void>
+  /** 空のディレクトリだけを削除する (rmdir 用)。非空は ENOTEMPTY、ファイルは ENOTDIR。 */
+  removeDir(path: string): VfsResult<void>
 
   // --- move / copy ---
   move(src: string, dst: string): VfsResult<void>

@@ -180,6 +180,10 @@ class VfsImpl implements Vfs {
       const existing = current.children[seg]
       if (existing) {
         if (!isDirectory(existing)) {
+          // 末尾セグメントがファイルなら EEXIST (実 mkdir の挙動)
+          if (isLast) {
+            return err('EEXIST', 'File exists', path)
+          }
           return err('ENOTDIR', 'Not a directory', `/${segments.slice(0, i + 1).join('/')}`)
         }
         if (isLast && !recursive) {
@@ -220,14 +224,35 @@ class VfsImpl implements Vfs {
     if (!target) {
       return err('ENOENT', 'No such file or directory', path)
     }
-    if (isDirectory(target)) {
-      if (!recursive) {
-        return err('EISDIR', 'Is a directory', path)
-      }
-      const isEmpty = Object.keys(target.children).length === 0
-      if (!isEmpty && !recursive) {
-        return err('ENOTEMPTY', 'Directory not empty', path)
-      }
+    if (isDirectory(target) && !recursive) {
+      return err('EISDIR', 'Is a directory', path)
+    }
+    delete parentResult.value.children[filename]
+    parentResult.value.mtime = now()
+    return ok(undefined)
+  }
+
+  removeDir(path: string): VfsResult<void> {
+    const normalized = normalize(path)
+    if (normalized === '/') {
+      return err('EINVAL', 'Cannot remove root', path)
+    }
+    const parentPath = dirname(normalized)
+    const filename = basename(normalized)
+    const parentResult = this.getNode(parentPath)
+    if (!parentResult.ok) return parentResult
+    if (!isDirectory(parentResult.value)) {
+      return err('ENOTDIR', 'Not a directory', parentPath)
+    }
+    const target = parentResult.value.children[filename]
+    if (!target) {
+      return err('ENOENT', 'No such file or directory', path)
+    }
+    if (!isDirectory(target)) {
+      return err('ENOTDIR', 'Not a directory', path)
+    }
+    if (Object.keys(target.children).length > 0) {
+      return err('ENOTEMPTY', 'Directory not empty', path)
     }
     delete parentResult.value.children[filename]
     parentResult.value.mtime = now()
@@ -238,7 +263,9 @@ class VfsImpl implements Vfs {
     const srcNorm = normalize(src)
     const dstNorm = normalize(dst)
     if (srcNorm === '/') return err('EINVAL', 'Cannot move root', src)
-    if (srcNorm === dstNorm) return ok(undefined)
+    if (srcNorm === dstNorm) {
+      return err('EINVAL', `'${src}' and '${dst}' are the same file`, src)
+    }
 
     const srcParentPath = dirname(srcNorm)
     const srcName = basename(srcNorm)
@@ -280,11 +307,19 @@ class VfsImpl implements Vfs {
       if (!isDirectory(existing) && isDirectory(srcNode)) {
         return err('ENOTDIR', 'Not a directory', dst)
       }
+      if (
+        isDirectory(existing) &&
+        isDirectory(srcNode) &&
+        Object.keys(existing.children).length > 0
+      ) {
+        return err('ENOTEMPTY', 'Directory not empty', dst)
+      }
     }
 
     delete srcParentResult.value.children[srcName]
     srcParentResult.value.mtime = now()
-    const movedNode: VfsNode = { ...srcNode, name: dstName, mtime: now() }
+    // mv は同一 FS 内なら mtime を保持する (rename(2) は metadata に触らない)
+    const movedNode: VfsNode = { ...srcNode, name: dstName }
     dstParent.children[dstName] = movedNode
     dstParent.mtime = now()
     return ok(undefined)
@@ -325,6 +360,23 @@ class VfsImpl implements Vfs {
         return err('ENOTDIR', 'Not a directory', dstParentPath)
       }
       dstParent = dstParentResult.value
+    }
+
+    const existingDst = dstParent.children[dstName]
+    if (existingDst) {
+      if (isDirectory(existingDst) && !isDirectory(srcResult.value)) {
+        return err('EISDIR', 'Is a directory', dst)
+      }
+      if (!isDirectory(existingDst) && isDirectory(srcResult.value)) {
+        return err('ENOTDIR', 'cannot overwrite non-directory with directory', dst)
+      }
+      if (
+        isDirectory(existingDst) &&
+        isDirectory(srcResult.value) &&
+        Object.keys(existingDst.children).length > 0
+      ) {
+        return err('ENOTEMPTY', 'Directory not empty', dst)
+      }
     }
 
     dstParent.children[dstName] = cloneNode(srcResult.value, dstName)
