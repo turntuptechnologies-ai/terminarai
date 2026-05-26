@@ -29,6 +29,15 @@ describe('evaluateCheck', () => {
     it('不一致なら false', () => {
       expect(evaluateCheck(check, ctx({ cwd: '/home/user' }))).toBe(false)
     })
+
+    it('末尾スラッシュの表記揺れは正規化されて一致扱い', () => {
+      expect(evaluateCheck(check, ctx({ cwd: '/home/user/docs/' }))).toBe(true)
+    })
+
+    it('check.path に末尾スラッシュがあっても一致扱い', () => {
+      const c: Check = { kind: 'cwd-equals', path: '/home/user/docs/' }
+      expect(evaluateCheck(c, ctx({ cwd: '/home/user/docs' }))).toBe(true)
+    })
   })
 
   describe('file-exists', () => {
@@ -156,6 +165,14 @@ describe('evaluateCheck', () => {
         ],
       }
       expect(evaluateCheck(check, ctx())).toBe(true)
+    })
+
+    it('空 and は false (作者ミス検知のため defensive default)', () => {
+      expect(evaluateCheck({ kind: 'and', checks: [] }, ctx())).toBe(false)
+    })
+
+    it('空 or も false', () => {
+      expect(evaluateCheck({ kind: 'or', checks: [] }, ctx())).toBe(false)
     })
   })
 })

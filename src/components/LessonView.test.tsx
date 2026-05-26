@@ -73,17 +73,38 @@ describe('LessonView', () => {
     expect(completedCalls).toBe(1)
   })
 
-  it('完了状態は localStorage に保存される', async () => {
+  it('完了状態は localStorage に保存される (chapterId 含むキー)', async () => {
     const user = userEvent.setup()
     render(<LessonView lesson={makeLesson()} />)
     const input = screen.getByLabelText('ターミナル入力')
     await user.type(input, 'pwd{Enter}')
-    const after1 = loadProgress('test-lesson')
+    const after1 = loadProgress('1', 'test-lesson')
     expect(after1?.completedSteps).toBe(1)
     expect(after1?.completed).toBe(false)
     await user.type(input, 'cd docs{Enter}')
-    const after2 = loadProgress('test-lesson')
+    const after2 = loadProgress('1', 'test-lesson')
     expect(after2?.completed).toBe(true)
+  })
+
+  it('完了済みレッスンに再訪すると最初から完了表示', () => {
+    window.localStorage.setItem(
+      'terminarai:progress:1/test-lesson',
+      JSON.stringify({ completedSteps: 2, completed: true, updatedAt: 100 }),
+    )
+    render(<LessonView lesson={makeLesson()} />)
+    expect(screen.getByText(/全てのステップをクリア/)).toBeInTheDocument()
+  })
+
+  it('lesson prop が変わると state がリセットされる', async () => {
+    const user = userEvent.setup()
+    const { rerender } = render(<LessonView lesson={makeLesson({ id: 'a' })} />)
+    const input = screen.getByLabelText('ターミナル入力')
+    await user.type(input, 'pwd{Enter}')
+    // a のステップ 2/2 に進んでいるはず
+    expect(screen.getByText(/ステップ 2 \/ 2/)).toBeInTheDocument()
+    rerender(<LessonView lesson={makeLesson({ id: 'b' })} />)
+    // b ではステップ 1/2 に戻る
+    expect(screen.getByText(/ステップ 1 \/ 2/)).toBeInTheDocument()
   })
 
   it('Check を満たさないコマンドは進捗が変わらない', async () => {

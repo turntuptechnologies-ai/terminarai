@@ -31,7 +31,7 @@ export function ChapterIndexPage() {
 
         <ol className="mt-8 space-y-3">
           {chapter.lessons.map((lesson, i) => {
-            const progress = loadProgress(lesson.id)
+            const progress = loadProgress(lesson.chapterId, lesson.id)
             const badge = progress?.completed
               ? '完了'
               : progress && progress.completedSteps > 0
