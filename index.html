@@ -6,6 +6,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="terminarai — Linux CLI 見習い道場。仮想シェルでコマンドを練習する学習サイト。" />
     <title>terminarai — Linux CLI 見習い道場</title>
+    <script>
+      // GitHub Pages SPA fallback の復元側
+      // 404.html がパスを ?/<path> 形式にしてリダイレクトしてくるので、
+      // history.replaceState で元の URL に戻す。
+      ;(function (l) {
+        if (l.search && l.search[1] === '/') {
+          var decoded = l.search
+            .slice(1)
+            .split('&')
+            .map(function (s) {
+              return s.replace(/~and~/g, '&')
+            })
+            .join('?')
+          window.history.replaceState(null, '', l.pathname.slice(0, -1) + decoded + l.hash)
+        }
+      })(window.location)
+    </script>
   </head>
   <body>
     <div id="root"></div>
