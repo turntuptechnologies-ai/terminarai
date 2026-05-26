@@ -5,13 +5,13 @@ import { defaultContext } from '../types'
 import { registerAllCommands } from './index'
 
 describe('registerAllCommands', () => {
-  it('pwd / ls / cd がシェルから利用可能になる', () => {
+  it('実装済みの全コマンドが利用可能になる', () => {
     const vfs = createDefaultVfs()
     const shell = createShell(vfs)
     registerAllCommands(shell)
-    expect(shell.has('pwd')).toBe(true)
-    expect(shell.has('ls')).toBe(true)
-    expect(shell.has('cd')).toBe(true)
+    for (const name of ['cat', 'cd', 'echo', 'ls', 'mkdir', 'pwd', 'touch']) {
+      expect(shell.has(name)).toBe(true)
+    }
   })
 
   it('シェル経由で pwd → ls → cd が連動して動く', () => {
@@ -33,5 +33,31 @@ describe('registerAllCommands', () => {
 
     const lsResult = shell.execute('ls /home/user', ctx)
     expect(lsResult.result.stdout).toBe('README.txt\ndocs\nhello.txt\n')
+  })
+
+  it('echo > file → cat file の往復で実体が書き込まれる', () => {
+    const vfs = createDefaultVfs()
+    const shell = createShell(vfs)
+    registerAllCommands(shell)
+    const ctx = defaultContext('/home/user')
+
+    const echoR = shell.execute('echo hello world > out.txt', ctx)
+    expect(echoR.result.exitCode).toBe(0)
+
+    const catR = shell.execute('cat out.txt', ctx)
+    expect(catR.result.stdout).toBe('hello world\n')
+  })
+
+  it('mkdir → touch → ls で作成物が見える', () => {
+    const vfs = createDefaultVfs()
+    const shell = createShell(vfs)
+    registerAllCommands(shell)
+    const ctx = defaultContext('/home/user')
+
+    expect(shell.execute('mkdir -p a/b', ctx).result.exitCode).toBe(0)
+    expect(shell.execute('touch a/b/note.txt', ctx).result.exitCode).toBe(0)
+
+    const lsR = shell.execute('ls a/b', ctx)
+    expect(lsR.result.stdout).toBe('note.txt\n')
   })
 })
