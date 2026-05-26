@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+/* Tailwind v4 が生成する --font-mono を Cascadia Code 優先に上書きする。
+ * font-mono Tailwind utility (Terminal で使用) がこの値を参照する。 */
+:root {
+  --font-mono:
+    "Cascadia Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+}
+
 html,
 body,
 #root {
@@ -7,7 +15,4 @@ body,
   margin: 0;
   background-color: #09090b;
   color: #f4f4f5;
-  font-family:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
-    monospace;
 }
