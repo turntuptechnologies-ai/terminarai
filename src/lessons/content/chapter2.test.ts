@@ -109,10 +109,7 @@ describe('CHAPTER_2 各レッスンの check', () => {
   it('2-4 step2: 相対パス cd .. で到達してもクリアしない (絶対パス学習が主旨)', () => {
     const lesson = getLessonOrThrow('2-4')
     expect(
-      evaluateCheck(
-        lesson.steps[1].check,
-        ctxFor({ cwd: '/home/user', lastCommand: 'cd ..' }),
-      ),
+      evaluateCheck(lesson.steps[1].check, ctxFor({ cwd: '/home/user', lastCommand: 'cd ..' })),
     ).toBe(false)
   })
 
@@ -148,9 +145,9 @@ describe('CHAPTER_2 各レッスンの check', () => {
 
   it('2-5 step2: ファイル未作成 + cat コマンドのみではクリアしない (and の左辺が効く)', () => {
     const lesson = getLessonOrThrow('2-5')
-    expect(
-      evaluateCheck(lesson.steps[1].check, ctxFor({ lastCommand: 'cat greeting.txt' })),
-    ).toBe(false)
+    expect(evaluateCheck(lesson.steps[1].check, ctxFor({ lastCommand: 'cat greeting.txt' }))).toBe(
+      false,
+    )
   })
 
   it('2-1: \\b 境界が効いて aREADME.txt や README.txt2 はクリアしない', () => {
