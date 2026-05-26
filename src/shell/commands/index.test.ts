@@ -9,7 +9,7 @@ describe('registerAllCommands', () => {
     const vfs = createDefaultVfs()
     const shell = createShell(vfs)
     registerAllCommands(shell)
-    for (const name of ['cat', 'cd', 'echo', 'ls', 'mkdir', 'pwd', 'touch']) {
+    for (const name of ['cat', 'cd', 'cp', 'echo', 'ls', 'mkdir', 'mv', 'pwd', 'rm', 'touch']) {
       expect(shell.has(name)).toBe(true)
     }
   })
@@ -59,5 +59,25 @@ describe('registerAllCommands', () => {
 
     const lsR = shell.execute('ls a/b', ctx)
     expect(lsR.result.stdout).toBe('note.txt\n')
+  })
+
+  it('mkdir → echo > file → cp → mv → rm の一連の流れ', () => {
+    const vfs = createDefaultVfs()
+    const shell = createShell(vfs)
+    registerAllCommands(shell)
+    const ctx = defaultContext('/home/user')
+
+    shell.execute('mkdir work', ctx)
+    shell.execute('echo hello > work/a.txt', ctx)
+    shell.execute('cp work/a.txt work/b.txt', ctx)
+    shell.execute('mv work/b.txt work/c.txt', ctx)
+    shell.execute('rm work/a.txt', ctx)
+
+    expect(vfs.stat('/home/user/work/a.txt').ok).toBe(false)
+    expect(vfs.stat('/home/user/work/c.txt').ok).toBe(true)
+
+    const cleanup = shell.execute('rm -r work', ctx)
+    expect(cleanup.result.exitCode).toBe(0)
+    expect(vfs.stat('/home/user/work').ok).toBe(false)
   })
 })
