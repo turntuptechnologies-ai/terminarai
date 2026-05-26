@@ -30,7 +30,10 @@ export function complete(
   const word = input.slice(wordStart)
   const prefix = input.slice(0, wordStart)
 
-  if (lastSpaceIdx === -1) {
+  // 先頭スペースを含む入力 ("  ls") でも word が先頭引数なら command 補完にする
+  const isFirstWord = prefix.trim() === ''
+
+  if (isFirstWord) {
     return completeCommand(input, prefix, word, registered)
   }
   return completePath(input, prefix, word, cwd, vfs)

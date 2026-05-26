@@ -159,8 +159,43 @@ describe('complete - path completion', () => {
     expect(r.newInput).toBe('cat docs/note.txt ')
   })
 
-  it('~/ から HOME 配下を補完', () => {
+  it('~/ から HOME 配下を補完 (~ 表記は温存される)', () => {
     const r = complete('cd ~/d', '/tmp', REGISTERED, vfs)
     expect(r.newInput).toBe('cd ~/docs/')
+  })
+
+  it('.. を含む相対パスも補完できる (.. 表記は温存)', () => {
+    // /home/user から ../u → /home/user/* を探すのではなく /home/u* を探す
+    const r = complete('cd ../u', '/home/user', REGISTERED, vfs)
+    expect(r.newInput).toBe('cd ../user/')
+  })
+
+  it('相対の無効ディレクトリは変化なし', () => {
+    const r = complete('cd nope/x', '/home/user', REGISTERED, vfs)
+    expect(r.newInput).toBe('cd nope/x')
+    expect(r.candidates).toEqual([])
+  })
+
+  it('共通プレフィックス拡張 (cp / co... のような部分マッチ)', () => {
+    vfs.writeFile('/home/user/cola.txt', 'a')
+    vfs.writeFile('/home/user/cone.txt', 'b')
+    const r = complete('cat co', '/home/user', REGISTERED, vfs)
+    expect(r.newInput).toBe('cat co')
+    expect(r.candidates.sort()).toEqual(['cola.txt', 'cone.txt'])
+  })
+})
+
+describe('complete - 先頭スペースのエッジケース', () => {
+  it('"  ls" (先頭空白) はコマンド補完を返す', () => {
+    const vfs = createDefaultVfs()
+    const r = complete('  ls', '/home/user', REGISTERED, vfs)
+    expect(r.newInput).toBe('  ls ')
+  })
+
+  it('"  c" でも複数候補表示', () => {
+    const vfs = createDefaultVfs()
+    const r = complete('  c', '/home/user', REGISTERED, vfs)
+    expect(r.newInput).toBe('  c')
+    expect(r.candidates).toEqual(['cat', 'cd', 'cp'])
   })
 })

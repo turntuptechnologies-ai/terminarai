@@ -37,7 +37,11 @@ export interface Shell {
   unregister(name: string): void
   has(name: string): boolean
   execute(input: string, ctx: CommandContext): ShellExecuteResult
-  /** 登録済みコマンド名 (ABC 順)。Tab 補完で使用。 */
+  /**
+   * 登録済みコマンド名 (ABC 順)。
+   * Tab 補完は `complete()` に任せるのが正規ルート。本メソッドは
+   * help コマンド等で「全コマンド一覧」を得たいユースケース向け。
+   */
   commandNames(): string[]
   /** 入力に対する Tab 補完を実行する。 */
   complete(input: string, ctx: CommandContext): CompletionResult
