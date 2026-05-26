@@ -1,4 +1,4 @@
-import type { LessonProgress } from './types'
+import type { Chapter, LessonProgress } from './types'
 
 const STORAGE_PREFIX = 'terminarai:progress:'
 
@@ -84,6 +84,45 @@ export function loadAllProgress(): Record<string, LessonProgress> {
     // ignore
   }
   return out
+}
+
+export type ChapterStatus = 'untouched' | 'in-progress' | 'completed'
+
+export interface ChapterProgress {
+  total: number
+  /** completed: true のレッスン数 */
+  completed: number
+  /** completed ではないが進行中のレッスン数 */
+  inProgress: number
+  status: ChapterStatus
+}
+
+/**
+ * 章全体の進捗を集計する。一覧ページのバッジ表示用。
+ *
+ * - 全レッスン完了 → 'completed'
+ * - 1 つでも完了 or 進行中 → 'in-progress'
+ * - 全部未着手 → 'untouched'
+ */
+export function computeChapterProgress(chapter: Chapter): ChapterProgress {
+  let completed = 0
+  let inProgress = 0
+  for (const lesson of chapter.lessons) {
+    const p = loadProgress(chapter.id, lesson.id)
+    if (p?.completed) {
+      completed++
+    } else if (p && p.completedSteps > 0) {
+      inProgress++
+    }
+  }
+  const total = chapter.lessons.length
+  const status: ChapterStatus =
+    total > 0 && completed === total
+      ? 'completed'
+      : completed > 0 || inProgress > 0
+        ? 'in-progress'
+        : 'untouched'
+  return { total, completed, inProgress, status }
 }
 
 function isValidProgress(value: unknown): value is LessonProgress {

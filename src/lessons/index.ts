@@ -1,6 +1,8 @@
 export { evaluateCheck } from './engine'
+export type { ChapterProgress, ChapterStatus } from './progress'
 export {
   clearProgress,
+  computeChapterProgress,
   loadAllProgress,
   loadProgress,
   saveProgress,
