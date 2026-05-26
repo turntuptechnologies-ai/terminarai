@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { LessonPage } from './LessonPage'
 
 describe('LessonPage', () => {
-  it('URL の chapterId / lessonId を見出しに反映', () => {
+  it('登録されていないレッスンは「見つかりません」を表示', () => {
     render(
       <MemoryRouter initialEntries={['/tutorial/ch1/l3']}>
         <Routes>
@@ -12,6 +12,7 @@ describe('LessonPage', () => {
         </Routes>
       </MemoryRouter>,
     )
-    expect(screen.getByRole('heading', { name: /ch1 \/ l3/ })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'レッスンが見つかりません' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /一覧へ戻る/ })).toHaveAttribute('href', '/tutorial')
   })
 })

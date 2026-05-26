@@ -28,9 +28,14 @@ describe('App routing', () => {
     expect(screen.getByRole('heading', { name: 'チュートリアル' })).toBeInTheDocument()
   })
 
-  it('/tutorial/:chapter/:lesson で LessonPage が表示される', () => {
+  it('/tutorial/:chapter で ChapterIndexPage が表示される (未登録は「章が見つかりません」)', () => {
+    renderAt('/tutorial/nope')
+    expect(screen.getByRole('heading', { name: '章が見つかりません' })).toBeInTheDocument()
+  })
+
+  it('/tutorial/:chapter/:lesson で LessonPage (未登録は「レッスンが見つかりません」)', () => {
     renderAt('/tutorial/ch1/l1')
-    expect(screen.getByRole('heading', { name: /ch1 \/ l1/ })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'レッスンが見つかりません' })).toBeInTheDocument()
   })
 
   it('/practice で PracticeIndexPage が表示される', () => {
