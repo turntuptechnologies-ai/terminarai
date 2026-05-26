@@ -31,14 +31,14 @@ describe('chapter1 結合テスト (Terminal 経由)', () => {
     expect(await screen.findByText(/全てのステップをクリア/)).toBeInTheDocument()
   })
 
-  it('1-4: cd → pwd の 2 ステップを順に踏む', async () => {
+  it('1-4: cd docs → cd .. の 2 ステップを順に踏む', async () => {
     const user = userEvent.setup()
     renderLesson('/tutorial/1/1-4')
     expect(screen.getByText(/ステップ 1 \/ 2/)).toBeInTheDocument()
     const input = screen.getByLabelText('ターミナル入力')
     await user.type(input, 'cd docs{Enter}')
     expect(await screen.findByText(/ステップ 2 \/ 2/)).toBeInTheDocument()
-    await user.type(input, 'pwd{Enter}')
+    await user.type(input, 'cd ..{Enter}')
     expect(await screen.findByText(/全てのステップをクリア/)).toBeInTheDocument()
   })
 
@@ -70,5 +70,17 @@ describe('chapter1 結合テスト (Terminal 経由)', () => {
     // 完了表示は出ず、依然として「ステップ 1 / 1」
     expect(screen.queryByText(/全てのステップをクリア/)).not.toBeInTheDocument()
     expect(screen.getByText(/ステップ 1 \/ 1/)).toBeInTheDocument()
+  })
+
+  it('1-1: 完了済みレッスンを再訪すると完了表示が即時に出る (進捗復元)', () => {
+    // 事前にレッスン 1-1 の completed=true を localStorage に保存
+    window.localStorage.setItem(
+      'terminarai:progress:1/1-1',
+      JSON.stringify({ completedSteps: 1, completed: true, updatedAt: Date.now() }),
+    )
+    renderLesson('/tutorial/1/1-1')
+    // 再訪時、ステップ表示ではなく完了メッセージが直接出る
+    expect(screen.getByText(/全てのステップをクリア/)).toBeInTheDocument()
+    expect(screen.queryByText(/ステップ 1 \/ 1/)).not.toBeInTheDocument()
   })
 })

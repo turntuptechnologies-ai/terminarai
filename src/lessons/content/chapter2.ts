@@ -25,7 +25,7 @@ export const CHAPTER_2: Chapter = {
       steps: [
         {
           instruction: '`cat README.txt` で README ファイルの中身を表示してみましょう。',
-          hint: '`cat` の後にファイル名を指定すると中身が出力されます。',
+          hints: ['`cat` の後にファイル名を指定すると中身が出力されます。'],
           check: {
             kind: 'command-matches',
             pattern: '^\\s*cat\\s+(?:\\S*/)?README\\.txt\\b',
@@ -44,7 +44,9 @@ export const CHAPTER_2: Chapter = {
         {
           instruction:
             'いま `/tmp` にいます。絶対パスで `cat /home/user/README.txt` を読んでみましょう。',
-          hint: '相対パス `cat README.txt` だと、現在いる /tmp に README.txt が無いためエラーになります。絶対パスならどこからでも読めます。',
+          hints: [
+            '相対パス `cat README.txt` だと、現在いる /tmp に README.txt が無いためエラーになります。絶対パスならどこからでも読めます。',
+          ],
           check: {
             kind: 'command-matches',
             pattern: '^\\s*cat\\s+/home/user/README\\.txt\\b',
@@ -63,7 +65,7 @@ export const CHAPTER_2: Chapter = {
         {
           instruction:
             'いま `/home/user/docs` にいます。`cd ..` で 1 つ上のホームに戻ってみましょう。',
-          hint: '`cd ..` と入力して Enter。または `cd /home/user` で絶対パスでも戻れます。',
+          hints: ['`cd ..` と入力して Enter。または `cd /home/user` で絶対パスでも戻れます。'],
           check: { kind: 'cwd-equals', path: '/home/user' },
         },
       ],
@@ -79,7 +81,7 @@ export const CHAPTER_2: Chapter = {
         {
           instruction:
             'いま `/home/user/docs` にいます。`cd ../..` で 2 つ上の `/home` まで戻ってみましょう。',
-          hint: '`docs → user → home` と 2 段上がります。`cd ../..` です。',
+          hints: ['`docs → user → home` と 2 段上がります。`cd ../..` です。'],
           check: {
             kind: 'and',
             checks: [
@@ -92,7 +94,7 @@ export const CHAPTER_2: Chapter = {
         {
           instruction:
             '今度は絶対パスで `cd /home/user` と打って、ホームへ一気に戻ってみましょう。',
-          hint: '`cd /home/user` のように先頭が `/` の絶対パスを指定します。',
+          hints: ['`cd /home/user` のように先頭が `/` の絶対パスを指定します。'],
           check: {
             kind: 'and',
             checks: [
@@ -114,12 +116,12 @@ export const CHAPTER_2: Chapter = {
         {
           instruction:
             '`echo hello > greeting.txt` を実行して、`greeting.txt` を作ってみましょう。',
-          hint: '`echo <文字列> > <ファイル名>` で、文字列をファイルに書き込めます。',
+          hints: ['`echo <文字列> > <ファイル名>` で、文字列をファイルに書き込めます。'],
           check: { kind: 'file-contains', path: '/home/user/greeting.txt', text: 'hello' },
         },
         {
           instruction: '`cat greeting.txt` で、いま書き込んだ内容を読んでみましょう。',
-          hint: '前のステップで作ったファイルです。`cat greeting.txt` でOK。',
+          hints: ['前のステップで作ったファイルです。`cat greeting.txt` でOK。'],
           check: {
             kind: 'and',
             checks: [

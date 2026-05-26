@@ -18,7 +18,14 @@ export type Check =
 
 export interface Step {
   instruction: string
-  hint?: string
+  /**
+   * 多段ヒント (空配列・未指定はヒントなし)。
+   *
+   * UI 側は「ヒントを見る」を 1 回押すごとに 1 つずつ開示する。
+   * 学習者には「最初は考え方、次に具体例」と段階的に支援できる。
+   * 単一ヒントしか持たないステップは `['...']` のように 1 要素配列で書く。
+   */
+  hints?: string[]
   check: Check
 }
 

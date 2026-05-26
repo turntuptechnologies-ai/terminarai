@@ -21,7 +21,7 @@ export const CHAPTER_3: Chapter = {
       steps: [
         {
           instruction: '`mkdir myfolder` で myfolder ディレクトリを作ってみましょう。',
-          hint: '`mkdir myfolder` と入力して Enter。`ls` で確認できます。',
+          hints: ['`mkdir myfolder` と入力して Enter。`ls` で確認できます。'],
           check: { kind: 'file-exists', path: '/home/user/myfolder' },
         },
       ],
@@ -36,7 +36,7 @@ export const CHAPTER_3: Chapter = {
         {
           instruction:
             '`mkdir -p project/src/lib` で 3 階層のディレクトリを一括で作ってみましょう。',
-          hint: '`-p` で project → src → lib が一度に作られます。',
+          hints: ['`-p` で project → src → lib が一度に作られます。'],
           check: { kind: 'file-exists', path: '/home/user/project/src/lib' },
         },
       ],
@@ -50,14 +50,14 @@ export const CHAPTER_3: Chapter = {
       steps: [
         {
           instruction: '`cp hello.txt copy.txt` で hello.txt を copy.txt にコピーしてみましょう。',
-          hint: 'コピー元・コピー先の順に指定します。',
+          hints: ['コピー元・コピー先の順に指定します。'],
           // hello.txt の中身に "terminarai" が含まれるので、cp 経由でしか満たせない
           check: { kind: 'file-contains', path: '/home/user/copy.txt', text: 'terminarai' },
         },
         {
           instruction:
             '`cp -r docs docs-copy` で docs ディレクトリを docs-copy として丸ごとコピーしてみましょう。',
-          hint: 'ディレクトリのコピーは `-r` フラグが必須です。',
+          hints: ['ディレクトリのコピーは `-r` フラグが必須です。'],
           check: { kind: 'file-exists', path: '/home/user/docs-copy' },
         },
       ],
@@ -72,7 +72,7 @@ export const CHAPTER_3: Chapter = {
         {
           instruction:
             '`mv hello.txt greeting.txt` で hello.txt の名前を greeting.txt に変えてみましょう。',
-          hint: '同じ場所に違う名前を指定すればリネームになります。',
+          hints: ['同じ場所に違う名前を指定すればリネームになります。'],
           check: {
             kind: 'and',
             checks: [
@@ -84,7 +84,7 @@ export const CHAPTER_3: Chapter = {
         {
           instruction:
             '`mv greeting.txt docs/` で greeting.txt を docs ディレクトリの中へ移動してみましょう。',
-          hint: '移動先が既存のディレクトリの場合、その配下に入ります。',
+          hints: ['移動先が既存のディレクトリの場合、その配下に入ります。'],
           check: {
             kind: 'and',
             checks: [
@@ -104,7 +104,7 @@ export const CHAPTER_3: Chapter = {
       steps: [
         {
           instruction: '`rm hello.txt` で hello.txt を削除してみましょう。',
-          hint: '`rm <ファイル名>` です。',
+          hints: ['`rm <ファイル名>` です。'],
           check: {
             kind: 'not',
             check: { kind: 'file-exists', path: '/home/user/hello.txt' },
@@ -113,7 +113,7 @@ export const CHAPTER_3: Chapter = {
         {
           instruction:
             '`rm -r docs` で docs ディレクトリを丸ごと削除してみましょう。`rm docs` だと失敗します。',
-          hint: 'ディレクトリ削除は `-r` を付けないと拒否されます。',
+          hints: ['ディレクトリ削除は `-r` を付けないと拒否されます。'],
           check: {
             kind: 'not',
             check: { kind: 'file-exists', path: '/home/user/docs' },

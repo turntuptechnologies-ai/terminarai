@@ -40,10 +40,12 @@ describe('CHAPTER_1 構造', () => {
     }
   })
 
-  it('全レッスンの全ステップに hint がある (初学者向け)', () => {
+  it('全レッスンの全ステップに hints がある (初学者向け)', () => {
     for (const lesson of CHAPTER_1.lessons) {
       for (const step of lesson.steps) {
-        expect(step.hint, `${lesson.id} のヒントが未定義`).toBeTruthy()
+        expect(step.hints && step.hints.length > 0, `${lesson.id} のヒントが未定義または空`).toBe(
+          true,
+        )
       }
     }
   })
@@ -101,14 +103,12 @@ describe('CHAPTER_1 各レッスンの check が期待コマンドで通る', ()
     expect(evaluateCheck(lesson.steps[0].check, ctxFor({ cwd: '/home/user/docs' }))).toBe(true)
   })
 
-  it('1-4 step 2: docs にいて pwd を実行ならクリア', () => {
+  it('1-4 step 2: cwd が /home/user に戻ったらクリア (cd ..)', () => {
     const lesson = getLessonOrThrow('1-4')
-    expect(
-      evaluateCheck(lesson.steps[1].check, ctxFor({ cwd: '/home/user/docs', lastCommand: 'pwd' })),
-    ).toBe(true)
+    expect(evaluateCheck(lesson.steps[1].check, ctxFor({ cwd: '/home/user' }))).toBe(true)
   })
 
-  it('1-4 step 2: docs にいても pwd 以外ではクリアしない', () => {
+  it('1-4 step 2: docs にいる間はクリアしない', () => {
     const lesson = getLessonOrThrow('1-4')
     expect(
       evaluateCheck(lesson.steps[1].check, ctxFor({ cwd: '/home/user/docs', lastCommand: 'ls' })),

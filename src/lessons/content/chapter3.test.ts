@@ -35,7 +35,9 @@ describe('CHAPTER_3 構造', () => {
     for (const lesson of CHAPTER_3.lessons) {
       for (const step of lesson.steps) {
         expect(step.instruction).toBeTruthy()
-        expect(step.hint, `${lesson.id} のヒント`).toBeTruthy()
+        expect(step.hints && step.hints.length > 0, `${lesson.id} のヒントが未定義または空`).toBe(
+          true,
+        )
         expect(step.check).toBeDefined()
       }
     }

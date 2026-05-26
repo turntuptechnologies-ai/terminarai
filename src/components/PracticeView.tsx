@@ -12,6 +12,7 @@ import { type CommandContext, type CommandResult, createShell, defaultContext } 
 import { registerAllCommands } from '../shell/commands'
 import { createDefaultVfs, createVfs, HOME_PATH, type Vfs } from '../vfs'
 import { FormattedText } from './FormattedText'
+import { HintReveal } from './HintReveal'
 import { Terminal } from './Terminal'
 
 interface PracticeViewProps {
@@ -58,13 +59,13 @@ export function PracticeView({ problem }: PracticeViewProps) {
   const [completed, setCompleted] = useState(
     () => loadProgress('practice', problem.id)?.completed ?? false,
   )
-  const [showHint, setShowHint] = useState(false)
+  const [revealedHints, setRevealedHints] = useState(0)
 
   useEffect(() => {
     setSession(buildSession(problem))
     setStepIndex(0)
     setCompleted(loadProgress('practice', problem.id)?.completed ?? false)
-    setShowHint(false)
+    setRevealedHints(0)
   }, [problem])
 
   const handleAfterExecute = useCallback(
@@ -90,7 +91,7 @@ export function PracticeView({ problem }: PracticeViewProps) {
         })
       } else {
         setStepIndex(nextIndex)
-        setShowHint(false)
+        setRevealedHints(0)
         saveProgress('practice', problem.id, {
           completedSteps: nextIndex,
           completed: false,
@@ -172,22 +173,15 @@ export function PracticeView({ problem }: PracticeViewProps) {
             <p className="mt-1 text-zinc-100">
               <FormattedText text={currentStep.instruction} />
             </p>
-            {currentStep.hint && (
-              <div className="mt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowHint((s) => !s)}
-                  aria-expanded={showHint}
-                  className="text-sky-400 text-xs underline-offset-2 hover:underline"
-                >
-                  {showHint ? 'ヒントを隠す' : 'ヒントを見る'}
-                </button>
-                {showHint && (
-                  <p className="mt-1 text-sm text-zinc-400">
-                    <FormattedText text={currentStep.hint} />
-                  </p>
-                )}
-              </div>
+            {currentStep.hints && currentStep.hints.length > 0 && (
+              <HintReveal
+                hints={currentStep.hints}
+                revealed={revealedHints}
+                onReveal={() => {
+                  if (!currentStep.hints) return
+                  setRevealedHints((n) => (n < currentStep.hints.length ? n + 1 : 0))
+                }}
+              />
             )}
           </div>
         ) : null}

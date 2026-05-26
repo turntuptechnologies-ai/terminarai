@@ -15,7 +15,7 @@ export const PROBLEMS: Problem[] = [
     steps: [
       {
         instruction: 'docs ディレクトリに `cd` で移動してください。',
-        hint: '`cd docs` でいけます。',
+        hints: ['`cd docs` でいけます。'],
         check: { kind: 'cwd-equals', path: '/home/user/docs' },
       },
     ],
@@ -29,7 +29,7 @@ export const PROBLEMS: Problem[] = [
     steps: [
       {
         instruction: '`cat` でファイルの中身を表示できます。',
-        hint: '`cat README.txt` (相対) でも `cat /home/user/README.txt` (絶対) でも OK。',
+        hints: ['`cat README.txt` (相対) でも `cat /home/user/README.txt` (絶対) でも OK。'],
         check: {
           kind: 'command-matches',
           pattern: '^\\s*cat\\s+(?:\\S*/)?README\\.txt\\b',
@@ -47,7 +47,7 @@ export const PROBLEMS: Problem[] = [
     steps: [
       {
         instruction: '`echo` の出力を `>` でファイルに書き込みましょう。',
-        hint: '`echo todo > memo.txt`',
+        hints: ['`echo todo > memo.txt`'],
         check: { kind: 'file-contains', path: '/home/user/memo.txt', text: 'todo' },
       },
     ],
@@ -62,7 +62,7 @@ export const PROBLEMS: Problem[] = [
     steps: [
       {
         instruction: 'myproject/src と myproject/test がどちらも存在する状態にしてください。',
-        hint: '`mkdir -p myproject/src myproject/test` で一度に作れます。',
+        hints: ['`mkdir -p myproject/src myproject/test` で一度に作れます。'],
         check: {
           kind: 'and',
           checks: [
@@ -83,7 +83,7 @@ export const PROBLEMS: Problem[] = [
     steps: [
       {
         instruction: 'hello.txt が docs 配下に存在し、かつ元の場所からは消えていることが条件です。',
-        hint: '`mv hello.txt docs/`',
+        hints: ['`mv hello.txt docs/`'],
         check: {
           kind: 'and',
           checks: [
