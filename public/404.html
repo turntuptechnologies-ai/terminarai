@@ -13,9 +13,13 @@
     <!--
       GitHub Pages SPA fallback のリダイレクト処理。
       CSP の script-src 'self' を満たすため外部ファイル化している。
-      sibling 配置のため相対パスで参照 (deploy base path に依存しない)。
+
+      重要: GitHub Pages はあらゆる存在しないパス (例 /terminarai/chapter/1/lesson/1-1)
+      に対してこの 404.html を「リクエストされたパスのまま」返す。そのため `./`
+      相対パスは存在しないパスを基点に解決されてしまい、redirect スクリプトが
+      404 になる (= SPA fallback 全壊)。base path を明示した絶対パスで参照する。
     -->
-    <script src="./404-redirect.js"></script>
+    <script src="/terminarai/404-redirect.js"></script>
   </head>
   <body></body>
 </html>
