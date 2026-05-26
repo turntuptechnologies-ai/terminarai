@@ -1,0 +1,69 @@
+import { beforeEach, describe, expect, it } from 'vitest'
+import { createDefaultVfs, type Vfs } from '../../vfs'
+import { defaultContext } from '../types'
+import { cd } from './cd'
+
+describe('cd', () => {
+  let vfs: Vfs
+
+  beforeEach(() => {
+    vfs = createDefaultVfs()
+  })
+
+  it('引数なしでホームへ', () => {
+    const r = cd([], defaultContext('/tmp'), vfs)
+    expect(r.exitCode).toBe(0)
+    expect(r.cwdAfter).toBe('/home/user')
+  })
+
+  it('~ でホームへ', () => {
+    const r = cd(['~'], defaultContext('/tmp'), vfs)
+    expect(r.cwdAfter).toBe('/home/user')
+  })
+
+  it('~/path で home 配下へ', () => {
+    const r = cd(['~/docs'], defaultContext('/tmp'), vfs)
+    expect(r.cwdAfter).toBe('/home/user/docs')
+  })
+
+  it('絶対パスへ移動', () => {
+    const r = cd(['/etc'], defaultContext('/home/user'), vfs)
+    expect(r.cwdAfter).toBe('/etc')
+  })
+
+  it('相対パスで移動', () => {
+    const r = cd(['docs'], defaultContext('/home/user'), vfs)
+    expect(r.cwdAfter).toBe('/home/user/docs')
+  })
+
+  it('../ で親へ', () => {
+    const r = cd(['..'], defaultContext('/home/user'), vfs)
+    expect(r.cwdAfter).toBe('/home')
+  })
+
+  it('存在しないディレクトリは exitCode 1', () => {
+    const r = cd(['/nope'], defaultContext(), vfs)
+    expect(r.exitCode).toBe(1)
+    expect(r.stderr).toContain('cd: /nope:')
+    expect(r.stderr).toContain('No such file or directory')
+    expect(r.cwdAfter).toBeUndefined()
+  })
+
+  it('ファイルを指定すると Not a directory', () => {
+    const r = cd(['/home/user/README.txt'], defaultContext(), vfs)
+    expect(r.exitCode).toBe(1)
+    expect(r.stderr).toContain('Not a directory')
+  })
+
+  it('引数が多すぎるとエラー', () => {
+    const r = cd(['a', 'b'], defaultContext(), vfs)
+    expect(r.exitCode).toBe(2)
+    expect(r.stderr).toContain('too many arguments')
+  })
+
+  it('cd - は OLDPWD not set (MVPでは未対応)', () => {
+    const r = cd(['-'], defaultContext(), vfs)
+    expect(r.exitCode).toBe(1)
+    expect(r.stderr).toContain('OLDPWD not set')
+  })
+})
