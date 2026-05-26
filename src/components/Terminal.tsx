@@ -144,14 +144,13 @@ export function Terminal({ shell, initialCtx, banner = '', onAfterExecute }: Ter
   }
 
   return (
-    // role="region" のランドマーク。出力は role="log" + aria-live で SR に変化を伝え、
-    // 入力は <form><input> として残置することで、SR の仮想カーソルが出力を辿れるようにする
-    // (旧 role="application" は virtual cursor を無効化していたため a11y が低下していた)。
+    // <section aria-label> = ランドマーク (role="region")。出力は role="log" + aria-live で
+    // SR に変化を伝え、入力は <form><input> として残置することで、SR の仮想カーソルが
+    // 出力を辿れるようにする (旧 role="application" は virtual cursor を無効化していた)。
     // biome-ignore lint/a11y/useKeyWithClickEvents: キー操作は input 自身が受け取る (このコンテナはフォーカスを引き取る用)
-    <div
+    <section
       ref={containerRef}
       onClick={focusInput}
-      role="region"
       aria-label="terminarai 仮想ターミナル"
       className="h-full min-h-0 flex-1 overflow-y-auto bg-zinc-950 p-4 font-mono text-sm leading-relaxed text-zinc-100"
       data-testid="terminal-root"
@@ -196,6 +195,6 @@ export function Terminal({ shell, initialCtx, banner = '', onAfterExecute }: Ter
           className="min-w-0 flex-1 border-none bg-transparent text-zinc-100 caret-emerald-400 outline-none"
         />
       </form>
-    </div>
+    </section>
   )
 }
