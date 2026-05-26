@@ -1,34 +1,26 @@
-import { useState } from 'react'
-import { Terminal } from './components/Terminal'
-import { createShell, defaultContext } from './shell'
-import { registerAllCommands } from './shell/commands'
-import { createDefaultVfs } from './vfs'
-
-const BANNER =
-  'terminarai へようこそ。\n' +
-  'Linux CLI の基本コマンドをここで練習できます。\n' +
-  '試しに `ls` や `cat README.txt` を打ってみてください。\n\n'
+import { Route, Routes } from 'react-router-dom'
+import { Layout } from './components/Layout'
+import { HomePage } from './pages/HomePage'
+import { LessonPage } from './pages/LessonPage'
+import { NotFoundPage } from './pages/NotFoundPage'
+import { PracticeIndexPage } from './pages/PracticeIndexPage'
+import { PracticePage } from './pages/PracticePage'
+import { SandboxPage } from './pages/SandboxPage'
+import { TutorialIndexPage } from './pages/TutorialIndexPage'
 
 function App() {
-  // useState の lazy init で「一度だけ生成」を契約レベルで担保する
-  const [shell] = useState(() => {
-    const vfs = createDefaultVfs()
-    const sh = createShell(vfs)
-    registerAllCommands(sh)
-    return sh
-  })
-
   return (
-    // 高さを viewport に固定し、内部の Terminal でだけスクロールが発生するようにする
-    <div className="flex h-screen flex-col overflow-hidden bg-zinc-950">
-      <header className="shrink-0 border-zinc-800 border-b px-6 py-3">
-        <h1 className="font-semibold text-lg text-zinc-100">terminarai</h1>
-        <p className="text-xs text-zinc-500">Linux CLI 見習い道場</p>
-      </header>
-      <main className="flex min-h-0 flex-1 flex-col">
-        <Terminal shell={shell} initialCtx={defaultContext('/home/user')} banner={BANNER} />
-      </main>
-    </div>
+    <Routes>
+      <Route element={<Layout />}>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/tutorial" element={<TutorialIndexPage />} />
+        <Route path="/tutorial/:chapterId/:lessonId" element={<LessonPage />} />
+        <Route path="/practice" element={<PracticeIndexPage />} />
+        <Route path="/practice/:problemId" element={<PracticePage />} />
+        <Route path="/sandbox" element={<SandboxPage />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Route>
+    </Routes>
   )
 }
 
