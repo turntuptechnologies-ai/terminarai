@@ -26,7 +26,10 @@ export const CHAPTER_2: Chapter = {
         {
           instruction: '`cat README.txt` で README ファイルの中身を表示してみましょう。',
           hint: '`cat` の後にファイル名を指定すると中身が出力されます。',
-          check: { kind: 'command-matches', pattern: '^\\s*cat\\s+\\S*README\\.txt' },
+          check: {
+            kind: 'command-matches',
+            pattern: '^\\s*cat\\s+(?:\\S*/)?README\\.txt\\b',
+          },
         },
       ],
     },
@@ -44,7 +47,7 @@ export const CHAPTER_2: Chapter = {
           hint: '相対パス `cat README.txt` だと、現在いる /tmp に README.txt が無いためエラーになります。絶対パスならどこからでも読めます。',
           check: {
             kind: 'command-matches',
-            pattern: '^\\s*cat\\s+/home/user/README\\.txt',
+            pattern: '^\\s*cat\\s+/home/user/README\\.txt\\b',
           },
         },
       ],
@@ -77,13 +80,27 @@ export const CHAPTER_2: Chapter = {
           instruction:
             'いま `/home/user/docs` にいます。`cd ../..` で 2 つ上の `/home` まで戻ってみましょう。',
           hint: '`docs → user → home` と 2 段上がります。`cd ../..` です。',
-          check: { kind: 'cwd-equals', path: '/home' },
+          check: {
+            kind: 'and',
+            checks: [
+              { kind: 'cwd-equals', path: '/home' },
+              // .. を使った移動であることを明示 (絶対パス cd /home での通過を防ぐ)
+              { kind: 'command-matches', pattern: '^\\s*cd\\s+\\.\\.' },
+            ],
+          },
         },
         {
           instruction:
             '今度は絶対パスで `cd /home/user` と打って、ホームへ一気に戻ってみましょう。',
           hint: '`cd /home/user` のように先頭が `/` の絶対パスを指定します。',
-          check: { kind: 'cwd-equals', path: '/home/user' },
+          check: {
+            kind: 'and',
+            checks: [
+              { kind: 'cwd-equals', path: '/home/user' },
+              // 絶対パス (`/` 始まり) であることを明示
+              { kind: 'command-matches', pattern: '^\\s*cd\\s+/' },
+            ],
+          },
         },
       ],
     },
@@ -109,7 +126,7 @@ export const CHAPTER_2: Chapter = {
               { kind: 'file-contains', path: '/home/user/greeting.txt', text: 'hello' },
               {
                 kind: 'command-matches',
-                pattern: '^\\s*cat\\s+\\S*greeting\\.txt',
+                pattern: '^\\s*cat\\s+(?:\\S*/)?greeting\\.txt\\b',
               },
             ],
           },

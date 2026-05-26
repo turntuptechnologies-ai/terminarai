@@ -82,14 +82,38 @@ describe('CHAPTER_2 各レッスンの check', () => {
     expect(getLessonOrThrow('2-3').initialCwd).toBe('/home/user/docs')
   })
 
-  it('2-4 step1: /home に到達でクリア', () => {
+  it('2-4 step1: cd ../.. で /home 到達ならクリア', () => {
     const lesson = getLessonOrThrow('2-4')
-    expect(evaluateCheck(lesson.steps[0].check, ctxFor({ cwd: '/home' }))).toBe(true)
+    expect(
+      evaluateCheck(lesson.steps[0].check, ctxFor({ cwd: '/home', lastCommand: 'cd ../..' })),
+    ).toBe(true)
   })
 
-  it('2-4 step2: /home/user に到達でクリア', () => {
+  it('2-4 step1: 絶対パス cd /home で到達してもクリアしない (.. 学習が主旨)', () => {
     const lesson = getLessonOrThrow('2-4')
-    expect(evaluateCheck(lesson.steps[1].check, ctxFor({ cwd: '/home/user' }))).toBe(true)
+    expect(
+      evaluateCheck(lesson.steps[0].check, ctxFor({ cwd: '/home', lastCommand: 'cd /home' })),
+    ).toBe(false)
+  })
+
+  it('2-4 step2: 絶対パス cd /home/user でクリア', () => {
+    const lesson = getLessonOrThrow('2-4')
+    expect(
+      evaluateCheck(
+        lesson.steps[1].check,
+        ctxFor({ cwd: '/home/user', lastCommand: 'cd /home/user' }),
+      ),
+    ).toBe(true)
+  })
+
+  it('2-4 step2: 相対パス cd .. で到達してもクリアしない (絶対パス学習が主旨)', () => {
+    const lesson = getLessonOrThrow('2-4')
+    expect(
+      evaluateCheck(
+        lesson.steps[1].check,
+        ctxFor({ cwd: '/home/user', lastCommand: 'cd ..' }),
+      ),
+    ).toBe(false)
   })
 
   it('2-5 step1: greeting.txt に "hello" が書かれていればクリア', () => {
@@ -120,5 +144,19 @@ describe('CHAPTER_2 各レッスンの check', () => {
     expect(
       evaluateCheck(lesson.steps[1].check, ctxFor({ vfs, lastCommand: 'ls greeting.txt' })),
     ).toBe(false)
+  })
+
+  it('2-5 step2: ファイル未作成 + cat コマンドのみではクリアしない (and の左辺が効く)', () => {
+    const lesson = getLessonOrThrow('2-5')
+    expect(
+      evaluateCheck(lesson.steps[1].check, ctxFor({ lastCommand: 'cat greeting.txt' })),
+    ).toBe(false)
+  })
+
+  it('2-1: \\b 境界が効いて aREADME.txt や README.txt2 はクリアしない', () => {
+    const lesson = getLessonOrThrow('2-1')
+    const check = lesson.steps[0].check
+    expect(evaluateCheck(check, ctxFor({ lastCommand: 'cat aREADME.txt' }))).toBe(false)
+    expect(evaluateCheck(check, ctxFor({ lastCommand: 'cat README.txt2' }))).toBe(false)
   })
 })

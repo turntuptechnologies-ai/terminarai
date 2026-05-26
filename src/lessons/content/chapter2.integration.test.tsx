@@ -38,6 +38,18 @@ describe('chapter2 結合テスト (Terminal 経由)', () => {
     expect(await screen.findByText(/全てのステップをクリア/)).toBeInTheDocument()
   })
 
+  it('2-2: /tmp から相対パスでは進まず、絶対パスでクリア', async () => {
+    const user = userEvent.setup()
+    renderLesson('/tutorial/2/2-2')
+    const input = screen.getByLabelText('ターミナル入力')
+    // 相対パスではクリアしない (cwd は /tmp なので README.txt は存在しない)
+    await user.type(input, 'cat README.txt{Enter}')
+    expect(screen.queryByText(/全てのステップをクリア/)).not.toBeInTheDocument()
+    // 絶対パスでクリア
+    await user.type(input, 'cat /home/user/README.txt{Enter}')
+    expect(await screen.findByText(/全てのステップをクリア/)).toBeInTheDocument()
+  })
+
   it('2-5: echo hello > greeting.txt → cat greeting.txt の 2 ステップ', async () => {
     const user = userEvent.setup()
     renderLesson('/tutorial/2/2-5')
