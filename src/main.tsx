@@ -1,5 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.tsx'
 
@@ -8,8 +9,11 @@ if (!rootElement) {
   throw new Error('Root element #root not found')
 }
 
+// TODO: GitHub Pages デプロイ時は <BrowserRouter basename={import.meta.env.BASE_URL}> に切替
 createRoot(rootElement).render(
   <StrictMode>
-    <App />
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
   </StrictMode>,
 )
