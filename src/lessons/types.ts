@@ -13,6 +13,8 @@ export type Check =
   | { kind: 'and'; checks: Check[] }
   /** 子チェックの論理 OR。空配列は false 扱い。 */
   | { kind: 'or'; checks: Check[] }
+  /** 子チェックの真偽値を反転 (例: ファイルが削除されたことを確認するのに使う)。 */
+  | { kind: 'not'; check: Check }
 
 export interface Step {
   instruction: string

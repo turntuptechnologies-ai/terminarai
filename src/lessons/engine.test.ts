@@ -175,4 +175,33 @@ describe('evaluateCheck', () => {
       expect(evaluateCheck({ kind: 'or', checks: [] }, ctx())).toBe(false)
     })
   })
+
+  describe('not', () => {
+    it('内側が true なら false', () => {
+      const check: Check = {
+        kind: 'not',
+        check: { kind: 'file-exists', path: '/home/user/README.txt' },
+      }
+      expect(evaluateCheck(check, ctx())).toBe(false)
+    })
+
+    it('内側が false なら true (削除確認に便利)', () => {
+      const check: Check = {
+        kind: 'not',
+        check: { kind: 'file-exists', path: '/home/user/nope.txt' },
+      }
+      expect(evaluateCheck(check, ctx())).toBe(true)
+    })
+
+    it('and / or と組み合わせ可能', () => {
+      const check: Check = {
+        kind: 'and',
+        checks: [
+          { kind: 'file-exists', path: '/home/user/README.txt' },
+          { kind: 'not', check: { kind: 'file-exists', path: '/home/user/nope.txt' } },
+        ],
+      }
+      expect(evaluateCheck(check, ctx())).toBe(true)
+    })
+  })
 })

@@ -20,11 +20,14 @@ describe('TutorialIndexPage', () => {
     window.localStorage.clear()
   })
 
-  it('登録済み章 (第1章・第2章) を表示', () => {
+  it('登録済み章 (第1〜3章) を表示', () => {
     renderPage()
     expect(screen.getByRole('heading', { name: 'チュートリアル' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'ファイルシステムを覗く' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'ファイルの中身を扱う' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'ファイルとディレクトリを管理する' }),
+    ).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /ファイルシステムを覗く/ })).toHaveAttribute(
       'href',
       '/tutorial/1',
@@ -33,12 +36,16 @@ describe('TutorialIndexPage', () => {
       'href',
       '/tutorial/2',
     )
+    expect(screen.getByRole('link', { name: /ファイルとディレクトリを管理する/ })).toHaveAttribute(
+      'href',
+      '/tutorial/3',
+    )
   })
 
   it('未着手の章は「未着手 (0 / N)」バッジ', () => {
     renderPage()
-    // 両章とも未着手で 2 つ表示される
-    expect(screen.getAllByText(/未着手 \(0 \/ 5\)/).length).toBe(2)
+    // 全章とも未着手で 3 つ表示される
+    expect(screen.getAllByText(/未着手 \(0 \/ 5\)/).length).toBe(3)
   })
 
   it('一部進行中なら「進行中 (X / N)」バッジ', () => {
