@@ -1,18 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
   <!--
-    terminarai favicon — Linux Tux 風ペンギンのシルエット (背景透過)
-    DESIGN.md カラー: body emerald-400, accents zinc-100, eyes zinc-950
+    terminarai favicon — ペンギン頭部の横向きシルエット (右向き、単色)
+    DESIGN.md カラー: zinc-950 (#09090b)
+    16x16 タブでも「丸い頭 + 短い三角くちばし」のシルエットで読み取れることを優先。
   -->
-  <!-- Body (canvas 一杯まで拡大) -->
-  <ellipse cx="32" cy="33" rx="24" ry="29" fill="#34d399"/>
-  <!-- Belly -->
-  <ellipse cx="32" cy="38" rx="13" ry="19" fill="#f4f4f5"/>
-  <!-- Feet (body の下から覗くように) -->
-  <ellipse cx="22" cy="60" rx="6" ry="3" fill="#f4f4f5"/>
-  <ellipse cx="42" cy="60" rx="6" ry="3" fill="#f4f4f5"/>
-  <!-- Eyes -->
-  <circle cx="24" cy="20" r="2.4" fill="#09090b"/>
-  <circle cx="40" cy="20" r="2.4" fill="#09090b"/>
-  <!-- Beak -->
-  <path d="M28 25 L 36 25 L 32 30 Z" fill="#f4f4f5"/>
+  <ellipse cx="26" cy="32" rx="22" ry="24" fill="#09090b"/>
+  <polygon points="42,26 60,32 42,38" fill="#09090b"/>
 </svg>
