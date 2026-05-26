@@ -10,7 +10,9 @@ describe('HomePage', () => {
         <HomePage />
       </MemoryRouter>,
     )
-    expect(screen.getByRole('heading', { name: /terminarai へようこそ/ })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: /terminarai へようこそ/, level: 1 }),
+    ).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /チュートリアル/ })).toHaveAttribute(
       'href',
       '/tutorial',

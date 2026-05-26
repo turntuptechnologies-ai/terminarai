@@ -28,7 +28,7 @@ export function HomePage() {
   return (
     <div className="overflow-y-auto px-6 py-10 text-zinc-100">
       <div className="mx-auto max-w-3xl">
-        <h2 className="font-semibold text-3xl text-zinc-100">terminarai へようこそ</h2>
+        <h1 className="font-semibold text-3xl text-zinc-100">terminarai へようこそ</h1>
         <p className="mt-4 text-zinc-400 leading-relaxed">
           terminarai は、ブラウザ上でエミュレートされた仮想シェルで Linux の基本コマンドを練習できる
           学習サイトです。本物の Linux 環境に触れる前に、ここで安全に手を動かしてみてください。

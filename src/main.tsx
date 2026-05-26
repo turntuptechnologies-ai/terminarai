@@ -9,6 +9,7 @@ if (!rootElement) {
   throw new Error('Root element #root not found')
 }
 
+// TODO: GitHub Pages デプロイ時は <BrowserRouter basename={import.meta.env.BASE_URL}> に切替
 createRoot(rootElement).render(
   <StrictMode>
     <BrowserRouter>

@@ -19,7 +19,8 @@ function renderAt(path: string) {
 describe('Layout', () => {
   it('ヘッダーとナビ、Outlet の子要素を描画', () => {
     renderAt('/')
-    expect(screen.getByRole('heading', { name: 'terminarai' })).toBeInTheDocument()
+    // Layout 自身は h1 を持たない (ページ側で <h1> を担当する設計)
+    expect(screen.getByText('terminarai')).toBeInTheDocument()
     expect(screen.getByText('Linux CLI 見習い道場')).toBeInTheDocument()
     expect(screen.getByText('home-content')).toBeInTheDocument()
   })
@@ -31,10 +32,17 @@ describe('Layout', () => {
     }
   })
 
-  it('現在のページに対応するナビリンクが active 状態', () => {
+  it('現在のページに対応するナビリンクが active 状態 + aria-current="page"', () => {
     renderAt('/tutorial')
     const tutorialLink = screen.getByRole('link', { name: 'チュートリアル' })
     expect(tutorialLink.className).toMatch(/text-emerald-400/)
     expect(tutorialLink.className).toMatch(/bg-zinc-800/)
+    expect(tutorialLink).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('Skip link が tab で可視化される', () => {
+    renderAt('/')
+    const skip = screen.getByRole('link', { name: '本文へスキップ' })
+    expect(skip).toHaveAttribute('href', '#main')
   })
 })

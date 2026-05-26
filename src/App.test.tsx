@@ -54,4 +54,17 @@ describe('App routing', () => {
     await user.click(screen.getByRole('link', { name: 'サンドボックス' }))
     expect(screen.getByLabelText('ターミナル入力')).toBeInTheDocument()
   })
+
+  it('/sandbox 表示中、ホームナビは end 指定で非 active', () => {
+    renderAt('/sandbox')
+    const home = screen.getByRole('link', { name: 'ホーム' })
+    expect(home).not.toHaveAttribute('aria-current')
+  })
+
+  it('404 ページから「ホームへ戻る」で / に遷移', async () => {
+    const user = userEvent.setup()
+    renderAt('/this-does-not-exist')
+    await user.click(screen.getByRole('link', { name: 'ホームへ戻る' }))
+    expect(screen.getByRole('heading', { name: /terminarai へようこそ/ })).toBeInTheDocument()
+  })
 })
