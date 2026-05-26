@@ -1,19 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
   <!--
-    terminarai favicon — Linux Tux 風ペンギンのシルエット
-    DESIGN.md カラー: bg zinc-950, body emerald-400, accents zinc-100
+    terminarai favicon — Linux Tux 風ペンギンのシルエット (背景透過)
+    DESIGN.md カラー: body emerald-400, accents zinc-100, eyes zinc-950
   -->
-  <rect width="64" height="64" rx="12" fill="#09090b"/>
-  <!-- Body -->
-  <ellipse cx="32" cy="34" rx="18" ry="22" fill="#34d399"/>
+  <!-- Body (canvas 一杯まで拡大) -->
+  <ellipse cx="32" cy="33" rx="24" ry="29" fill="#34d399"/>
   <!-- Belly -->
-  <ellipse cx="32" cy="39" rx="9" ry="14" fill="#f4f4f5"/>
-  <!-- Feet -->
-  <ellipse cx="25" cy="57" rx="4" ry="3" fill="#f4f4f5"/>
-  <ellipse cx="39" cy="57" rx="4" ry="3" fill="#f4f4f5"/>
+  <ellipse cx="32" cy="38" rx="13" ry="19" fill="#f4f4f5"/>
+  <!-- Feet (body の下から覗くように) -->
+  <ellipse cx="22" cy="60" rx="6" ry="3" fill="#f4f4f5"/>
+  <ellipse cx="42" cy="60" rx="6" ry="3" fill="#f4f4f5"/>
   <!-- Eyes -->
-  <circle cx="26" cy="22" r="1.8" fill="#09090b"/>
-  <circle cx="38" cy="22" r="1.8" fill="#09090b"/>
+  <circle cx="24" cy="20" r="2.4" fill="#09090b"/>
+  <circle cx="40" cy="20" r="2.4" fill="#09090b"/>
   <!-- Beak -->
-  <path d="M29 27 L 35 27 L 32 31 Z" fill="#f4f4f5"/>
+  <path d="M28 25 L 36 25 L 32 30 Z" fill="#f4f4f5"/>
 </svg>
