@@ -61,6 +61,25 @@ describe('registerAllCommands', () => {
     expect(lsR.result.stdout).toBe('note.txt\n')
   })
 
+  it('cd → cd - で前のディレクトリに戻れる (OLDPWD 連携)', () => {
+    const vfs = createDefaultVfs()
+    const shell = createShell(vfs)
+    registerAllCommands(shell)
+    let ctx = defaultContext('/home/user')
+
+    // /tmp へ移動
+    const r1 = shell.execute('cd /tmp', ctx)
+    expect(r1.nextCtx.cwd).toBe('/tmp')
+    expect(r1.nextCtx.env.OLDPWD).toBe('/home/user')
+    ctx = r1.nextCtx
+
+    // cd - で /home/user に戻る + パスが stdout に出る
+    const r2 = shell.execute('cd -', ctx)
+    expect(r2.nextCtx.cwd).toBe('/home/user')
+    expect(r2.result.stdout).toBe('/home/user\n')
+    expect(r2.nextCtx.env.OLDPWD).toBe('/tmp')
+  })
+
   it('mkdir → echo > file → cp → mv → rm の一連の流れ (各ステップ exit 0)', () => {
     const vfs = createDefaultVfs()
     const shell = createShell(vfs)

@@ -65,9 +65,9 @@ export function Terminal({ shell, initialCtx, banner = '', onAfterExecute }: Ter
       setDraftBeforeNav('')
       return
     }
-    const { result, nextCwd } = shell.execute(input, ctx)
-    const ctxAfter: CommandContext =
-      nextCwd !== ctx.cwd ? { ...ctx, cwd: nextCwd, env: { ...ctx.env, PWD: nextCwd } } : ctx
+    // Shell が env.PWD / env.OLDPWD まで同期した nextCtx を返してくれるので、Terminal 側で
+    // env を手動で組み立てる必要はない
+    const { result, nextCtx } = shell.execute(input, ctx)
 
     setHistory((h) => [
       ...h,
@@ -78,11 +78,11 @@ export function Terminal({ shell, initialCtx, banner = '', onAfterExecute }: Ter
         stderr: result.stderr,
       },
     ])
-    if (nextCwd !== ctx.cwd) {
-      setCtx(ctxAfter)
+    if (nextCtx !== ctx) {
+      setCtx(nextCtx)
     }
 
-    onAfterExecute?.(input, result, ctxAfter)
+    onAfterExecute?.(input, result, nextCtx)
 
     setInput('')
     setHistoryCursor(-1)

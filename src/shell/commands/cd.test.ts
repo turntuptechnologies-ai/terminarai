@@ -61,11 +61,21 @@ describe('cd', () => {
     expect(r.stderr).toContain('too many arguments')
   })
 
-  it('cd - は明示的に MVP 未対応エラー', () => {
+  it('cd - で OLDPWD 未設定なら "OLDPWD not set" エラー', () => {
     const r = cd(['-'], defaultContext(), vfs)
     expect(r.exitCode).toBe(1)
-    expect(r.stderr).toContain('MVP 未対応')
-    expect(r.stderr).toContain('#11')
+    expect(r.stderr).toContain('OLDPWD not set')
+  })
+
+  it('cd - で OLDPWD が設定されていればそこへ戻る + stdout に表示', () => {
+    const ctx = {
+      cwd: '/home/user',
+      env: { HOME: '/home/user', USER: 'user', PWD: '/home/user', OLDPWD: '/tmp' },
+    }
+    const r = cd(['-'], ctx, vfs)
+    expect(r.exitCode).toBe(0)
+    expect(r.cwdAfter).toBe('/tmp')
+    expect(r.stdout).toBe('/tmp\n')
   })
 
   it('cd / でルートへ移動', () => {

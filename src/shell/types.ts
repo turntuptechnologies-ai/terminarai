@@ -30,6 +30,12 @@ export interface ShellExecuteResult {
   result: CommandResult
   /** 実行後の cwd (変化なければ ctx.cwd と同じ) */
   nextCwd: string
+  /**
+   * 実行後の完全な CommandContext。
+   * cwd が変化した場合、env.PWD と env.OLDPWD も同期される。
+   * 利用側 (Terminal/LessonView) は次ループでそのままこれを ctx として使えば良い。
+   */
+  nextCtx: CommandContext
 }
 
 export interface Shell {
