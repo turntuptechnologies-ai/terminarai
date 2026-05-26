@@ -7,4 +7,10 @@ describe('App', () => {
     render(<App />)
     expect(screen.getByRole('heading', { name: 'terminarai' })).toBeInTheDocument()
   })
+
+  it('ターミナルとプロンプトが表示される', () => {
+    render(<App />)
+    expect(screen.getByLabelText('terminal input')).toBeInTheDocument()
+    expect(screen.getByText('user@terminarai')).toBeInTheDocument()
+  })
 })
