@@ -1,4 +1,5 @@
 import { Link, useParams } from 'react-router-dom'
+import { FormattedText } from '../components/FormattedText'
 import { findChapter, loadProgress } from '../lessons'
 
 export function ChapterIndexPage() {
@@ -27,7 +28,9 @@ export function ChapterIndexPage() {
       <div className="mx-auto max-w-3xl">
         <p className="text-emerald-400 text-xs uppercase tracking-wide">第 {chapter.id} 章</p>
         <h1 className="mt-1 font-semibold text-2xl">{chapter.title}</h1>
-        <p className="mt-3 text-zinc-400 leading-relaxed">{chapter.description}</p>
+        <p className="mt-3 text-zinc-400 leading-relaxed">
+          <FormattedText text={chapter.description} />
+        </p>
 
         <ol className="mt-8 space-y-3">
           {chapter.lessons.map((lesson, i) => {

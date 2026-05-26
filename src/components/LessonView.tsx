@@ -3,6 +3,7 @@ import { evaluateCheck, type Lesson, loadProgress, saveProgress } from '../lesso
 import { type CommandContext, type CommandResult, createShell, defaultContext } from '../shell'
 import { registerAllCommands } from '../shell/commands'
 import { createDefaultVfs, createVfs, HOME_PATH, type Vfs } from '../vfs'
+import { FormattedText } from './FormattedText'
 import { Terminal } from './Terminal'
 
 interface LessonViewProps {
@@ -91,7 +92,9 @@ export function LessonView({ lesson, onComplete }: LessonViewProps) {
     <div className="flex h-full min-h-0 flex-col">
       <section className="shrink-0 border-zinc-800 border-b bg-zinc-900 px-6 py-4 text-zinc-100">
         <h1 className="font-semibold text-xl">{lesson.title}</h1>
-        <p className="mt-2 text-sm text-zinc-400">{lesson.description}</p>
+        <p className="mt-2 text-sm text-zinc-400">
+          <FormattedText text={lesson.description} />
+        </p>
 
         {completed ? (
           <div
@@ -105,7 +108,9 @@ export function LessonView({ lesson, onComplete }: LessonViewProps) {
             <p className="text-emerald-400 text-xs uppercase tracking-wide">
               ステップ {stepIndex + 1} / {lesson.steps.length}
             </p>
-            <p className="mt-1 text-zinc-100">{currentStep.instruction}</p>
+            <p className="mt-1 text-zinc-100">
+              <FormattedText text={currentStep.instruction} />
+            </p>
             {currentStep.hint && (
               <div className="mt-2">
                 <button
@@ -116,7 +121,11 @@ export function LessonView({ lesson, onComplete }: LessonViewProps) {
                 >
                   {showHint ? 'ヒントを隠す' : 'ヒントを見る'}
                 </button>
-                {showHint && <p className="mt-1 text-sm text-zinc-400">{currentStep.hint}</p>}
+                {showHint && (
+                  <p className="mt-1 text-sm text-zinc-400">
+                    <FormattedText text={currentStep.hint} />
+                  </p>
+                )}
               </div>
             )}
           </div>
