@@ -1,4 +1,5 @@
 import type { Vfs } from '../vfs'
+import type { CompletionResult } from './completion'
 
 export interface CommandContext {
   cwd: string
@@ -36,6 +37,10 @@ export interface Shell {
   unregister(name: string): void
   has(name: string): boolean
   execute(input: string, ctx: CommandContext): ShellExecuteResult
+  /** 登録済みコマンド名 (ABC 順)。Tab 補完で使用。 */
+  commandNames(): string[]
+  /** 入力に対する Tab 補完を実行する。 */
+  complete(input: string, ctx: CommandContext): CompletionResult
 }
 
 /** 既定の初期コンテキスト。シェル本体ではなく利用側で使う想定。 */

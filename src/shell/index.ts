@@ -1,3 +1,5 @@
+export type { CompletionResult } from './completion'
+export { complete } from './completion'
 export type { ParsedCommand, ParseError, ParseResult } from './parser'
 export { parse } from './parser'
 export { createShell } from './shell'
