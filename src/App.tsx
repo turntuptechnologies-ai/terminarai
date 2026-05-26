@@ -19,12 +19,13 @@ function App() {
   })
 
   return (
-    <div className="flex min-h-screen flex-col bg-zinc-950">
-      <header className="border-zinc-800 border-b px-6 py-3">
+    // 高さを viewport に固定し、内部の Terminal でだけスクロールが発生するようにする
+    <div className="flex h-screen flex-col overflow-hidden bg-zinc-950">
+      <header className="shrink-0 border-zinc-800 border-b px-6 py-3">
         <h1 className="font-semibold text-lg text-zinc-100">terminarai</h1>
         <p className="text-xs text-zinc-500">Linux CLI 見習い道場</p>
       </header>
-      <main className="flex flex-1 flex-col">
+      <main className="flex min-h-0 flex-1 flex-col">
         <Terminal shell={shell} initialCtx={defaultContext('/home/user')} banner={BANNER} />
       </main>
     </div>

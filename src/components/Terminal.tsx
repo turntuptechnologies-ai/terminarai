@@ -106,7 +106,7 @@ export function Terminal({ shell, initialCtx, banner = '' }: TerminalProps) {
       onClick={focusInput}
       role="application"
       aria-label="terminarai 仮想ターミナル"
-      className="h-full min-h-[400px] overflow-y-auto bg-zinc-950 p-4 font-mono text-sm leading-relaxed text-zinc-100"
+      className="h-full min-h-0 flex-1 overflow-y-auto bg-zinc-950 p-4 font-mono text-sm leading-relaxed text-zinc-100"
       data-testid="terminal-root"
     >
       {history.map((entry) => (
