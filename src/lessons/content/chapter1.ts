@@ -28,7 +28,7 @@ export const CHAPTER_1: Chapter = {
       steps: [
         {
           instruction: '`pwd` を実行して、今いる場所を確認してみましょう。',
-          hint: '`pwd` と入力して Enter キーを押すだけです。',
+          hints: ['`pwd` と入力して Enter キーを押すだけです。'],
           check: { kind: 'command-matches', pattern: '^\\s*pwd\\b' },
         },
       ],
@@ -41,7 +41,7 @@ export const CHAPTER_1: Chapter = {
       steps: [
         {
           instruction: '`ls` を実行して、現在のディレクトリの内容を表示してみましょう。',
-          hint: '`ls` と入力して Enter を押します。',
+          hints: ['`ls` と入力して Enter を押します。'],
           check: { kind: 'command-matches', pattern: '^\\s*ls(\\s|$)' },
         },
       ],
@@ -55,12 +55,12 @@ export const CHAPTER_1: Chapter = {
       steps: [
         {
           instruction: '`ls -l` で詳細情報付きでファイル一覧を表示してみましょう。',
-          hint: 'パーミッション、サイズ、更新日時、ファイル名の順に表示されます。',
+          hints: ['パーミッション、サイズ、更新日時、ファイル名の順に表示されます。'],
           check: { kind: 'command-matches', pattern: '^\\s*ls\\s+-\\S*l' },
         },
         {
           instruction: '`ls -a` (または `ls -la`) で、隠しファイルも含めて表示してみましょう。',
-          hint: '`-a` フラグを付けると `.` で始まるファイルも見えます。',
+          hints: ['`-a` フラグを付けると `.` で始まるファイルも見えます。'],
           check: { kind: 'command-matches', pattern: '^\\s*ls\\s+-\\S*a' },
         },
       ],
@@ -70,23 +70,23 @@ export const CHAPTER_1: Chapter = {
       chapterId: '1',
       title: 'ディレクトリを移動する (cd)',
       description:
-        'cd (change directory) で別のディレクトリに移動できます。移動後は pwd で確認してみましょう。',
+        'cd (change directory) で別のディレクトリに移動できます。docs に入って、上のディレクトリに戻る練習をしましょう。',
       steps: [
         {
           instruction: '`cd docs` で docs ディレクトリに移動してください。',
-          hint: '`cd docs` または `cd /home/user/docs` でも構いません。',
+          hints: [
+            'cd のあとに行きたいディレクトリの名前を書きます。',
+            '`cd docs` または `cd /home/user/docs` でも構いません。',
+          ],
           check: { kind: 'cwd-equals', path: '/home/user/docs' },
         },
         {
-          instruction: '`pwd` で、移動先のパスを確認してみましょう。',
-          hint: 'もし `cd ..` 等で docs から出てしまったら、`cd docs` で戻ってから `pwd` を実行してください。',
-          check: {
-            kind: 'and',
-            checks: [
-              { kind: 'cwd-equals', path: '/home/user/docs' },
-              { kind: 'command-matches', pattern: '^\\s*pwd\\b' },
-            ],
-          },
+          instruction: '`cd ..` で 1 つ上のディレクトリ (/home/user) に戻りましょう。',
+          hints: [
+            'ふたつのドット `..` は「1 つ上のディレクトリ」を表します。',
+            '`cd ..` と入力して Enter。`pwd` で確認できます。',
+          ],
+          check: { kind: 'cwd-equals', path: '/home/user' },
         },
       ],
     },
@@ -101,7 +101,7 @@ export const CHAPTER_1: Chapter = {
         {
           instruction:
             'いま `/tmp` にいます。`cd` または `cd ~` でホームディレクトリに戻ってください。',
-          hint: '`cd` だけ、または `cd ~` でホーム (/home/user) に戻ります。',
+          hints: ['`cd` だけ、または `cd ~` でホーム (/home/user) に戻ります。'],
           check: { kind: 'cwd-equals', path: '/home/user' },
         },
       ],

@@ -15,7 +15,7 @@ function makeProblem(over: Partial<Problem> = {}): Problem {
     steps: [
       {
         instruction: 'pwd を実行してください。',
-        hint: '`pwd` と打ちます。',
+        hints: ['`pwd` と打ちます。'],
         check: { kind: 'command-matches', pattern: '^\\s*pwd\\b' },
       },
     ],

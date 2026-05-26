@@ -20,7 +20,7 @@ function makeLesson(over: Partial<Lesson> = {}): Lesson {
       {
         instruction: 'まず pwd を実行してください',
         check: { kind: 'command-matches', pattern: '^pwd$' },
-        hint: 'pwd と入力して Enter',
+        hints: ['pwd と入力して Enter'],
       },
       {
         instruction: 'docs ディレクトリに移動してください',

@@ -80,4 +80,19 @@ describe('registry', () => {
       }
     }
   })
+
+  it('全レッスンの id は chapterId プレフィクス付き (規約 "1-1", "2-3" 等)', () => {
+    // Lesson 型 JSDoc に「<chapter>-<n> 形式を推奨」と書かれている規約をテストで enforce。
+    // 規約から外れたレッスン id が混入すると URL や進捗キーの可読性が下がるため。
+    for (const ch of CHAPTERS) {
+      for (const lesson of ch.lessons) {
+        expect(
+          lesson.id.startsWith(`${ch.id}-`),
+          `${lesson.id} は chapter "${ch.id}" の "${ch.id}-" プレフィクスを持つ必要がある`,
+        ).toBe(true)
+        // chapterId フィールドも一致していること
+        expect(lesson.chapterId, `${lesson.id} の chapterId 不一致`).toBe(ch.id)
+      }
+    }
+  })
 })

@@ -5,6 +5,7 @@ import { type CommandContext, type CommandResult, createShell, defaultContext } 
 import { registerAllCommands } from '../shell/commands'
 import { createDefaultVfs, createVfs, HOME_PATH, type Vfs } from '../vfs'
 import { FormattedText } from './FormattedText'
+import { HintReveal } from './HintReveal'
 import { Terminal } from './Terminal'
 
 interface LessonViewProps {
@@ -41,14 +42,15 @@ export function LessonView({ lesson, onComplete }: LessonViewProps) {
   const [completed, setCompleted] = useState(
     () => loadProgress(lesson.chapterId, lesson.id)?.completed ?? false,
   )
-  const [showHint, setShowHint] = useState(false)
+  // 多段ヒント: 0=未表示、1..N=N 番目までを順次開示
+  const [revealedHints, setRevealedHints] = useState(0)
 
   // レッスン (lesson.id) が切り替わったら state を全リセット
   useEffect(() => {
     setSession(buildSession(lesson))
     setStepIndex(0)
     setCompleted(loadProgress(lesson.chapterId, lesson.id)?.completed ?? false)
-    setShowHint(false)
+    setRevealedHints(0)
   }, [lesson.id, lesson.chapterId, lesson])
 
   const handleAfterExecute = useCallback(
@@ -75,7 +77,7 @@ export function LessonView({ lesson, onComplete }: LessonViewProps) {
         onComplete?.()
       } else {
         setStepIndex(nextIndex)
-        setShowHint(false)
+        setRevealedHints(0)
         saveProgress(lesson.chapterId, lesson.id, {
           completedSteps: nextIndex,
           completed: false,
@@ -150,22 +152,17 @@ export function LessonView({ lesson, onComplete }: LessonViewProps) {
             <p className="mt-1 text-zinc-100">
               <FormattedText text={currentStep.instruction} />
             </p>
-            {currentStep.hint && (
-              <div className="mt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowHint((s) => !s)}
-                  aria-expanded={showHint}
-                  className="text-sky-400 text-xs underline-offset-2 hover:underline"
-                >
-                  {showHint ? 'ヒントを隠す' : 'ヒントを見る'}
-                </button>
-                {showHint && (
-                  <p className="mt-1 text-sm text-zinc-400">
-                    <FormattedText text={currentStep.hint} />
-                  </p>
-                )}
-              </div>
+            {currentStep.hints && currentStep.hints.length > 0 && (
+              <HintReveal
+                hints={currentStep.hints}
+                revealed={revealedHints}
+                onReveal={() => {
+                  // narrowing が closure 内で失われるためローカル const に退避
+                  const hs = currentStep.hints
+                  if (!hs) return
+                  setRevealedHints((n) => (n < hs.length ? n + 1 : 0))
+                }}
+              />
             )}
           </div>
         ) : null}
