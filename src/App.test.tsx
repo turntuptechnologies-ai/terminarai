@@ -43,9 +43,9 @@ describe('App routing', () => {
     expect(screen.getByRole('heading', { name: '自習問題' })).toBeInTheDocument()
   })
 
-  it('/practice/:id で PracticePage が表示される', () => {
+  it('/practice/:id で PracticePage が表示される (登録済み問題)', () => {
     renderAt('/practice/p1')
-    expect(screen.getByRole('heading', { name: /問題: p1/ })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /docs ディレクトリへ移動/ })).toBeInTheDocument()
   })
 
   it('/reference で ReferencePage が表示される', () => {
