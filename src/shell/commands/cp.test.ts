@@ -88,4 +88,32 @@ describe('cp', () => {
     expect(r.exitCode).toBe(1)
     expect(r.stderr).toContain('same file')
   })
+
+  it('ディレクトリを自身配下にコピーは EINVAL + 小文字 prefix', () => {
+    const r = cp(['-r', '/home/user/docs', '/home/user/docs/sub'], defaultContext(), vfs)
+    expect(r.exitCode).toBe(1)
+    expect(r.stderr).toMatch(/cp: cannot copy/)
+    expect(r.stderr).toContain('into itself')
+  })
+
+  it('既存ファイルへの上書きコピー (silent に置換)', () => {
+    vfs.writeFile('/home/user/a.txt', 'A')
+    vfs.writeFile('/home/user/b.txt', 'B')
+    const r = cp(['/home/user/a.txt', '/home/user/b.txt'], defaultContext(), vfs)
+    expect(r.exitCode).toBe(0)
+    const read = vfs.readFile('/home/user/b.txt')
+    if (read.ok) expect(read.value).toBe('A')
+    expect(vfs.stat('/home/user/a.txt').ok).toBe(true)
+  })
+
+  it('-r で同名ディレクトリへのコピー: 宛先サブツリーが非空なら ENOTEMPTY (既知の制約)', () => {
+    vfs.writeFile('/home/user/docs/note.txt', 'src')
+    // 既に同名 docs/docs が存在し、しかも子ファイルがある状況を作る
+    vfs.mkdir('/home/user/parent')
+    vfs.mkdir('/home/user/parent/docs')
+    vfs.writeFile('/home/user/parent/docs/existing.txt', 'EXISTING')
+    const r = cp(['-r', '/home/user/docs', '/home/user/parent'], defaultContext(), vfs)
+    expect(r.exitCode).toBe(1)
+    expect(r.stderr).toContain('Directory not empty')
+  })
 })

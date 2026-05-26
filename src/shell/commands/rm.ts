@@ -35,7 +35,8 @@ export const rm: CommandHandler = (args, ctx, vfs) => {
     const abs = vfs.resolve(ctx.cwd, target)
     const stat = vfs.stat(abs)
     if (!stat.ok) {
-      if (stat.error.code === 'ENOENT' && force) continue
+      // GNU rm -f は ENOENT 以外に途中パスが ENOTDIR の場合も silent に許容する
+      if ((stat.error.code === 'ENOENT' || stat.error.code === 'ENOTDIR') && force) continue
       stderr += `rm: cannot remove '${target}': ${stat.error.message}\n`
       exitCode = 1
       continue

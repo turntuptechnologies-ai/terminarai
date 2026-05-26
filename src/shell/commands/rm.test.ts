@@ -89,8 +89,18 @@ describe('rm', () => {
     expect(r.stderr).toContain("invalid option -- 'Z'")
   })
 
-  it('ルート (/) の削除は VFS が EINVAL を返す', () => {
+  it('ルート (/) の削除は阻止され、配下が破壊されない', () => {
     const r = rm(['-rf', '/'], defaultContext(), vfs)
     expect(r.exitCode).toBe(1)
+    expect(r.stderr).toContain('cannot remove')
+    expect(vfs.stat('/home/user').ok).toBe(true)
+    expect(vfs.stat('/etc').ok).toBe(true)
+  })
+
+  it('-f は中間パスが ENOTDIR でも silent', () => {
+    // /home/user/README.txt はファイル。その配下を rm -f しても黙る
+    const r = rm(['-f', '/home/user/README.txt/sub'], defaultContext(), vfs)
+    expect(r.exitCode).toBe(0)
+    expect(r.stderr).toBe('')
   })
 })

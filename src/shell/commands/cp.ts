@@ -1,6 +1,10 @@
 import type { CommandHandler } from '../types'
 import { invalidOptionError, parseShortFlags } from './parse-args'
 
+function lowerFirst(s: string): string {
+  return s.charAt(0).toLowerCase() + s.slice(1)
+}
+
 /**
  * cp — ファイル / ディレクトリをコピーする。
  *
@@ -9,6 +13,10 @@ import { invalidOptionError, parseShortFlags } from './parse-args'
  *   - SOURCE が複数なら DEST は既存ディレクトリでなければならない
  *   - SOURCE がディレクトリで `-r` がないと "omitting directory" エラー
  * - `-i` / `-n` / `-p` 等は MVP 未対応
+ *
+ * 既知の制約: 同名ディレクトリへの再帰コピーは、宛先サブツリーが空でない場合
+ * `ENOTEMPTY` で失敗する (VFS が真のマージコピーをサポートしないため)。
+ * GNU `cp -r` は子ファイルをマージする挙動なのでここで乖離する。Issue #9 で追跡。
  */
 export const cp: CommandHandler = (args, ctx, vfs) => {
   const parsed = parseShortFlags(args, 'rR')
@@ -66,8 +74,9 @@ export const cp: CommandHandler = (args, ctx, vfs) => {
     const result = vfs.copy(sourceAbs, destAbs, { recursive })
     if (!result.ok) {
       if (result.error.code === 'EINVAL') {
-        // 同一パス等は VFS のメッセージが既に src/dst を含むので、prefix だけ付ける
-        stderr += `cp: ${result.error.message}\n`
+        // 同一パス / 自身配下コピーは VFS のメッセージが既に src/dst を含むので、prefix だけ付ける
+        // (先頭は GNU 風に小文字へ正規化)
+        stderr += `cp: ${lowerFirst(result.error.message)}\n`
       } else {
         stderr += `cp: cannot copy '${source}' to '${dest}': ${result.error.message}\n`
       }

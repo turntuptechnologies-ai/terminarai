@@ -61,17 +61,17 @@ describe('registerAllCommands', () => {
     expect(lsR.result.stdout).toBe('note.txt\n')
   })
 
-  it('mkdir → echo > file → cp → mv → rm の一連の流れ', () => {
+  it('mkdir → echo > file → cp → mv → rm の一連の流れ (各ステップ exit 0)', () => {
     const vfs = createDefaultVfs()
     const shell = createShell(vfs)
     registerAllCommands(shell)
     const ctx = defaultContext('/home/user')
 
-    shell.execute('mkdir work', ctx)
-    shell.execute('echo hello > work/a.txt', ctx)
-    shell.execute('cp work/a.txt work/b.txt', ctx)
-    shell.execute('mv work/b.txt work/c.txt', ctx)
-    shell.execute('rm work/a.txt', ctx)
+    expect(shell.execute('mkdir work', ctx).result.exitCode).toBe(0)
+    expect(shell.execute('echo hello > work/a.txt', ctx).result.exitCode).toBe(0)
+    expect(shell.execute('cp work/a.txt work/b.txt', ctx).result.exitCode).toBe(0)
+    expect(shell.execute('mv work/b.txt work/c.txt', ctx).result.exitCode).toBe(0)
+    expect(shell.execute('rm work/a.txt', ctx).result.exitCode).toBe(0)
 
     expect(vfs.stat('/home/user/work/a.txt').ok).toBe(false)
     expect(vfs.stat('/home/user/work/c.txt').ok).toBe(true)
