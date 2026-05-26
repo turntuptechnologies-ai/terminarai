@@ -69,15 +69,20 @@ export function Terminal({ shell, initialCtx, banner = '', onAfterExecute }: Ter
     // env を手動で組み立てる必要はない
     const { result, nextCtx } = shell.execute(input, ctx)
 
-    setHistory((h) => [
-      ...h,
-      {
-        id: nextEntryId(),
-        prompt: { cwd: ctx.cwd, input },
-        stdout: result.stdout,
-        stderr: result.stderr,
-      },
-    ])
+    // clear コマンドは履歴を空にして、自分自身も履歴に積まない (bash 互換)
+    if (result.clearScreen) {
+      setHistory([])
+    } else {
+      setHistory((h) => [
+        ...h,
+        {
+          id: nextEntryId(),
+          prompt: { cwd: ctx.cwd, input },
+          stdout: result.stdout,
+          stderr: result.stderr,
+        },
+      ])
+    }
     if (nextCtx !== ctx) {
       setCtx(nextCtx)
     }

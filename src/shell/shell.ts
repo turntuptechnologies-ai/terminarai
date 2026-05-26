@@ -151,11 +151,11 @@ class ShellImpl implements Shell {
       )
     }
 
+    // clearScreen / cwdAfter 等のシグナル系フィールドは保持する
     return makeResult(
       {
+        ...handlerResult,
         stdout: '',
-        stderr: handlerResult.stderr,
-        exitCode: handlerResult.exitCode,
       },
       ctx,
       nextCwd,

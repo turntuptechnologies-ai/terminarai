@@ -170,10 +170,45 @@ describe('Terminal', () => {
     const input = screen.getByLabelText('ターミナル入力') as HTMLInputElement
     await user.type(input, 'c')
     await user.keyboard('{Tab}')
-    // 入力は変化しない (c は cat/cd/cp の共通プレフィックスで止まる)
+    // 入力は変化しない (c は cat/cd/clear/cp の共通プレフィックスで止まる)
     expect(input.value).toBe('c')
     // 履歴に候補が表示される
-    expect(await screen.findByText(/cat\s+cd\s+cp/)).toBeInTheDocument()
+    expect(await screen.findByText(/cat\s+cd\s+clear\s+cp/)).toBeInTheDocument()
+  })
+
+  it('clear コマンドで履歴と banner がクリアされる', async () => {
+    const user = userEvent.setup()
+    render(
+      <Terminal
+        shell={shell}
+        initialCtx={defaultContext('/home/user')}
+        banner="ようこそ banner\n"
+      />,
+    )
+    const input = screen.getByLabelText('ターミナル入力')
+    await user.type(input, 'pwd{Enter}')
+    await user.type(input, 'ls{Enter}')
+    // この時点で履歴に pre 要素 (banner + 出力) が複数ある
+    expect(document.querySelectorAll('pre').length).toBeGreaterThan(0)
+
+    await user.type(input, 'clear{Enter}')
+    // 履歴も banner も消える
+    expect(document.querySelectorAll('pre').length).toBe(0)
+    expect(screen.queryByText(/ようこそ banner/)).not.toBeInTheDocument()
+    // 入力欄は引き続き使える
+    expect((screen.getByLabelText('ターミナル入力') as HTMLInputElement).value).toBe('')
+  })
+
+  it('clear 自身は履歴遡り (↑) の対象にならない', async () => {
+    const user = userEvent.setup()
+    render(<Terminal shell={shell} initialCtx={defaultContext('/home/user')} />)
+    const input = screen.getByLabelText('ターミナル入力') as HTMLInputElement
+    await user.type(input, 'pwd{Enter}')
+    await user.type(input, 'clear{Enter}')
+    // clear 後、↑ で遡ると... clear は履歴に積まないので pwd は遡れない
+    // (画面クリア = 跡を残さない仕様)
+    await user.type(input, '{ArrowUp}')
+    expect(input.value).toBe('')
   })
 
   it('> リダイレクト経由でファイルが書き込まれ、cat で読める (smoke)', async () => {
