@@ -9,10 +9,14 @@ if (!rootElement) {
   throw new Error('Root element #root not found')
 }
 
-// TODO: GitHub Pages デプロイ時は <BrowserRouter basename={import.meta.env.BASE_URL}> に切替
+// import.meta.env.BASE_URL は vite.config.ts の base 設定が反映される
+// dev: '/' / prod: '/terminarai/' (末尾スラッシュ込み)。
+// BrowserRouter の basename は末尾スラッシュなし推奨なので削ぎ落とす。
+const basename = import.meta.env.BASE_URL.replace(/\/$/, '')
+
 createRoot(rootElement).render(
   <StrictMode>
-    <BrowserRouter>
+    <BrowserRouter basename={basename}>
       <App />
     </BrowserRouter>
   </StrictMode>,

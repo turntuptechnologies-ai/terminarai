@@ -59,6 +59,26 @@ pnpm test:run      # テスト1回
 pnpm check         # Biome でリント + フォーマット + import 並べ替え
 ```
 
+## デプロイ
+
+GitHub Pages で公開する想定。`main` への push をトリガに、
+`.github/workflows/deploy.yml` が自動でビルド・デプロイを行う。
+
+公開 URL: https://turntuptechnologies-ai.github.io/terminarai/
+
+### 初回セットアップ (リポジトリ設定)
+
+1. リポジトリを **public** にする (GitHub Free プランで Pages を使う条件)
+2. **Settings → Pages** を開く
+3. **Source** を **GitHub Actions** に設定
+4. main に push すると Actions が走り、数分で公開される
+
+### 仕組み
+
+- Vite の `base` 設定 (`/terminarai/`) でサブパス対応
+- React Router の `basename` に `import.meta.env.BASE_URL` を渡す
+- `public/404.html` で SPA fallback (直接 `/terminarai/tutorial` 等にアクセスされても OK)
+
 ## ライセンス
 
 未定（公開時に検討）
