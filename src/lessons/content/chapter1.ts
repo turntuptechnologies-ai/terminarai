@@ -5,6 +5,13 @@ import type { Chapter } from '../types'
  *
  * 学習者がまず触れる pwd / ls / cd を段階的に練習する。
  * 1-3 で `-l` / `-a` のオプションも紹介する。
+ *
+ * 既知の制約 (follow-up で対応):
+ * - command-matches パターンは raw 入力に対する正規表現のため、
+ *   フルパス指定 (`/bin/pwd` 等) ではクリア判定されない。MVP 範囲では shell も
+ *   `/path/to/cmd` 形式を未対応のため整合は取れている
+ * - `cat README.txt` のようなファイル閲覧体験は第1章では扱わない。
+ *   第2章で `cat` / リダイレクト等を取り上げる予定
  */
 export const CHAPTER_1: Chapter = {
   id: '1',
@@ -72,7 +79,7 @@ export const CHAPTER_1: Chapter = {
         },
         {
           instruction: '`pwd` で、移動先のパスを確認してみましょう。',
-          hint: '前のレッスンでも使った pwd です。出力が変わっているはずです。',
+          hint: 'もし `cd ..` 等で docs から出てしまったら、`cd docs` で戻ってから `pwd` を実行してください。',
           check: {
             kind: 'and',
             checks: [

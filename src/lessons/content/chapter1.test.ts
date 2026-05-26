@@ -50,32 +50,33 @@ describe('CHAPTER_1 構造', () => {
 })
 
 describe('CHAPTER_1 各レッスンの check が期待コマンドで通る', () => {
-  const findLesson = (id: string) => {
+  // registry.findLesson と区別するため named differently
+  const getLessonOrThrow = (id: string) => {
     const l = CHAPTER_1.lessons.find((x) => x.id === id)
     if (!l) throw new Error(`lesson ${id} not found`)
     return l
   }
 
   it('1-1 pwd: `pwd` でクリア', () => {
-    const lesson = findLesson('1-1')
+    const lesson = getLessonOrThrow('1-1')
     const passed = evaluateCheck(lesson.steps[0].check, ctxFor({ lastCommand: 'pwd' }))
     expect(passed).toBe(true)
   })
 
   it('1-2 ls: `ls` でクリア', () => {
-    const lesson = findLesson('1-2')
+    const lesson = getLessonOrThrow('1-2')
     const passed = evaluateCheck(lesson.steps[0].check, ctxFor({ lastCommand: 'ls' }))
     expect(passed).toBe(true)
   })
 
   it('1-2 ls: 引数付きでもクリア (`ls -l`)', () => {
-    const lesson = findLesson('1-2')
+    const lesson = getLessonOrThrow('1-2')
     const passed = evaluateCheck(lesson.steps[0].check, ctxFor({ lastCommand: 'ls -l' }))
     expect(passed).toBe(true)
   })
 
   it('1-3 step 1 -l: `ls -l` / `ls -la` / `ls -al` のいずれもクリア', () => {
-    const lesson = findLesson('1-3')
+    const lesson = getLessonOrThrow('1-3')
     const check = lesson.steps[0].check
     for (const cmd of ['ls -l', 'ls -la', 'ls -al']) {
       expect(evaluateCheck(check, ctxFor({ lastCommand: cmd })), `${cmd} でクリアする`).toBe(true)
@@ -83,12 +84,12 @@ describe('CHAPTER_1 各レッスンの check が期待コマンドで通る', ()
   })
 
   it('1-3 step 1: `ls -a` (l を含まない) ではクリアしない', () => {
-    const lesson = findLesson('1-3')
+    const lesson = getLessonOrThrow('1-3')
     expect(evaluateCheck(lesson.steps[0].check, ctxFor({ lastCommand: 'ls -a' }))).toBe(false)
   })
 
   it('1-3 step 2 -a: `ls -a` / `ls -la` のいずれもクリア', () => {
-    const lesson = findLesson('1-3')
+    const lesson = getLessonOrThrow('1-3')
     const check = lesson.steps[1].check
     for (const cmd of ['ls -a', 'ls -la']) {
       expect(evaluateCheck(check, ctxFor({ lastCommand: cmd }))).toBe(true)
@@ -96,31 +97,31 @@ describe('CHAPTER_1 各レッスンの check が期待コマンドで通る', ()
   })
 
   it('1-4 step 1: cwd が /home/user/docs ならクリア', () => {
-    const lesson = findLesson('1-4')
+    const lesson = getLessonOrThrow('1-4')
     expect(evaluateCheck(lesson.steps[0].check, ctxFor({ cwd: '/home/user/docs' }))).toBe(true)
   })
 
   it('1-4 step 2: docs にいて pwd を実行ならクリア', () => {
-    const lesson = findLesson('1-4')
+    const lesson = getLessonOrThrow('1-4')
     expect(
       evaluateCheck(lesson.steps[1].check, ctxFor({ cwd: '/home/user/docs', lastCommand: 'pwd' })),
     ).toBe(true)
   })
 
   it('1-4 step 2: docs にいても pwd 以外ではクリアしない', () => {
-    const lesson = findLesson('1-4')
+    const lesson = getLessonOrThrow('1-4')
     expect(
       evaluateCheck(lesson.steps[1].check, ctxFor({ cwd: '/home/user/docs', lastCommand: 'ls' })),
     ).toBe(false)
   })
 
   it('1-5: cwd が /home/user ならクリア (cd でも cd ~ でも)', () => {
-    const lesson = findLesson('1-5')
+    const lesson = getLessonOrThrow('1-5')
     expect(evaluateCheck(lesson.steps[0].check, ctxFor({ cwd: '/home/user' }))).toBe(true)
   })
 
   it('1-5: initialCwd が /tmp に設定されている', () => {
-    const lesson = findLesson('1-5')
+    const lesson = getLessonOrThrow('1-5')
     expect(lesson.initialCwd).toBe('/tmp')
   })
 })

@@ -12,6 +12,9 @@ describe('TutorialIndexPage', () => {
     )
     expect(screen.getByRole('heading', { name: 'チュートリアル' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'ファイルシステムを覗く' })).toBeInTheDocument()
-    expect(screen.getByRole('link')).toHaveAttribute('href', '/tutorial/1')
+    expect(screen.getByRole('link', { name: /ファイルシステムを覗く/ })).toHaveAttribute(
+      'href',
+      '/tutorial/1',
+    )
   })
 })

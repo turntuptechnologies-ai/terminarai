@@ -49,4 +49,26 @@ describe('chapter1 結合テスト (Terminal 経由)', () => {
     await user.type(input, 'cd{Enter}')
     expect(await screen.findByText(/全てのステップをクリア/)).toBeInTheDocument()
   })
+
+  it('1-3: ls -l → ls -a の 2 ステップを順に踏む (1 コマンド 1 ステップ進行)', async () => {
+    const user = userEvent.setup()
+    renderLesson('/tutorial/1/1-3')
+    expect(screen.getByText(/ステップ 1 \/ 2/)).toBeInTheDocument()
+    const input = screen.getByLabelText('ターミナル入力')
+    await user.type(input, 'ls -l{Enter}')
+    expect(await screen.findByText(/ステップ 2 \/ 2/)).toBeInTheDocument()
+    await user.type(input, 'ls -a{Enter}')
+    expect(await screen.findByText(/全てのステップをクリア/)).toBeInTheDocument()
+  })
+
+  it('1-1: typo で誤ったコマンドを打ってもステップは進まない', async () => {
+    const user = userEvent.setup()
+    renderLesson('/tutorial/1/1-1')
+    expect(screen.getByText(/ステップ 1 \/ 1/)).toBeInTheDocument()
+    const input = screen.getByLabelText('ターミナル入力')
+    await user.type(input, 'pwdd{Enter}')
+    // 完了表示は出ず、依然として「ステップ 1 / 1」
+    expect(screen.queryByText(/全てのステップをクリア/)).not.toBeInTheDocument()
+    expect(screen.getByText(/ステップ 1 \/ 1/)).toBeInTheDocument()
+  })
 })
