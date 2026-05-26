@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useState } from 'react'
 import { Terminal } from './components/Terminal'
 import { createShell, defaultContext } from './shell'
 import { registerAllCommands } from './shell/commands'
@@ -10,12 +10,13 @@ const BANNER =
   '試しに `ls` や `cat README.txt` を打ってみてください。\n\n'
 
 function App() {
-  const shell = useMemo(() => {
+  // useState の lazy init で「一度だけ生成」を契約レベルで担保する
+  const [shell] = useState(() => {
     const vfs = createDefaultVfs()
     const sh = createShell(vfs)
     registerAllCommands(sh)
     return sh
-  }, [])
+  })
 
   return (
     <div className="flex min-h-screen flex-col bg-zinc-950">

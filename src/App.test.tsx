@@ -10,7 +10,7 @@ describe('App', () => {
 
   it('ターミナルとプロンプトが表示される', () => {
     render(<App />)
-    expect(screen.getByLabelText('terminal input')).toBeInTheDocument()
-    expect(screen.getByText('user@terminarai')).toBeInTheDocument()
+    expect(screen.getByLabelText('ターミナル入力')).toBeInTheDocument()
+    expect(screen.getAllByText('user@terminarai').length).toBeGreaterThan(0)
   })
 })

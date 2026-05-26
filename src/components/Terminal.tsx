@@ -17,13 +17,14 @@ interface HistoryEntry {
   stderr: string
 }
 
-let entryIdCounter = 0
-const nextEntryId = () => ++entryIdCounter
-
 export function Terminal({ shell, initialCtx, banner = '' }: TerminalProps) {
+  // エントリ ID は React の key 安定性のためインスタンスローカルに管理する
+  const idCounterRef = useRef(0)
+  const nextEntryId = () => ++idCounterRef.current
+
   const [ctx, setCtx] = useState<CommandContext>(initialCtx)
   const [history, setHistory] = useState<HistoryEntry[]>(() =>
-    banner ? [{ id: nextEntryId(), prompt: null, stdout: banner, stderr: '' }] : [],
+    banner ? [{ id: ++idCounterRef.current, prompt: null, stdout: banner, stderr: '' }] : [],
   )
   const [input, setInput] = useState('')
   /** 入力履歴を遡る際のカーソル位置 (0 が最新の確定入力、-1 は「カーソル無し」)。 */
@@ -51,6 +52,13 @@ export function Terminal({ shell, initialCtx, banner = '' }: TerminalProps) {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
+    // 空 Enter は bash 同様に何もしない (履歴にも積まない)
+    if (input.trim() === '') {
+      setInput('')
+      setHistoryCursor(-1)
+      setDraftBeforeNav('')
+      return
+    }
     const { result, nextCwd } = shell.execute(input, ctx)
     setHistory((h) => [
       ...h,
@@ -98,7 +106,7 @@ export function Terminal({ shell, initialCtx, banner = '' }: TerminalProps) {
       onClick={focusInput}
       role="application"
       aria-label="terminarai 仮想ターミナル"
-      className="h-full min-h-[400px] overflow-y-auto bg-zinc-950 p-4 text-sm leading-relaxed text-zinc-100"
+      className="h-full min-h-[400px] overflow-y-auto bg-zinc-950 p-4 font-mono text-sm leading-relaxed text-zinc-100"
       data-testid="terminal-root"
     >
       {history.map((entry) => (
@@ -110,18 +118,14 @@ export function Terminal({ shell, initialCtx, banner = '' }: TerminalProps) {
             </div>
           )}
           {entry.stdout && (
-            <pre className="m-0 whitespace-pre-wrap break-all font-[inherit] text-zinc-100">
-              {entry.stdout}
-            </pre>
+            <pre className="m-0 whitespace-pre-wrap break-words text-zinc-100">{entry.stdout}</pre>
           )}
           {entry.stderr && (
-            <pre className="m-0 whitespace-pre-wrap break-all font-[inherit] text-rose-400">
-              {entry.stderr}
-            </pre>
+            <pre className="m-0 whitespace-pre-wrap break-words text-rose-400">{entry.stderr}</pre>
           )}
         </div>
       ))}
-      <form onSubmit={handleSubmit} className="flex flex-wrap items-center">
+      <form onSubmit={handleSubmit} className="flex items-center">
         <Prompt cwd={ctx.cwd} />
         <input
           ref={inputRef}
@@ -134,8 +138,8 @@ export function Terminal({ shell, initialCtx, banner = '' }: TerminalProps) {
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="off"
-          aria-label="terminal input"
-          className="min-w-[20ch] flex-1 border-none bg-transparent text-zinc-100 caret-emerald-400 outline-none"
+          aria-label="ターミナル入力"
+          className="min-w-0 flex-1 border-none bg-transparent text-zinc-100 caret-emerald-400 outline-none"
         />
       </form>
     </div>

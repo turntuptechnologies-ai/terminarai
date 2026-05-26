@@ -14,10 +14,13 @@ export function displayCwd(cwd: string): string {
 /**
  * シェルのプロンプト表示。
  * 形式: `user@terminarai:~/docs$ `
+ *
+ * スクリーンリーダーには文脈として読み上げさせるため `aria-hidden` は付けない。
+ * 色装飾は装飾目的なので各 span にロールは付けない。
  */
 export function Prompt({ cwd }: PromptProps) {
   return (
-    <span className="select-none whitespace-pre" aria-hidden="true">
+    <span className="select-none whitespace-pre">
       <span className="text-emerald-400">user@terminarai</span>
       <span className="text-zinc-500">:</span>
       <span className="text-sky-400">{displayCwd(cwd)}</span>
