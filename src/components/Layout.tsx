@@ -26,7 +26,7 @@ export function Layout() {
       <header className="shrink-0 border-zinc-800 border-b">
         <div className="flex flex-col gap-3 px-6 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="font-semibold text-lg text-zinc-100">terminarai</p>
+            <p className="font-mono font-semibold text-lg text-zinc-100">terminarai</p>
             <p className="text-xs text-zinc-500">Linux CLI 見習い道場</p>
           </div>
           <nav aria-label="主要ナビゲーション" className="flex flex-wrap gap-1">
