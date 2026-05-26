@@ -22,6 +22,30 @@ export interface Step {
   check: Check
 }
 
+export type Difficulty = 'easy' | 'medium' | 'hard'
+
+/**
+ * 自習問題。Lesson と似た構造を持つが、章 (Chapter) には属さず独立して並ぶ。
+ * 難易度と対象タグ (使用コマンド) を持つ点が違う。
+ *
+ * 進捗保存は loadProgress('practice', problem.id) で Lesson 互換にまとめる。
+ */
+export interface Problem {
+  /** 一意 ID (例: 'p1', 'p2') */
+  id: string
+  title: string
+  /** 問題文 */
+  description: string
+  difficulty: Difficulty
+  /** この問題で扱うコマンド名 (UI バッジ用) */
+  tags: string[]
+  /** 省略時は createDefaultVfs() */
+  initialFs?: VfsDirectory
+  /** 省略時は HOME_PATH */
+  initialCwd?: string
+  steps: Step[]
+}
+
 export interface Lesson {
   /**
    * **アプリ全体でユニーク**な ID。URL は /tutorial/:chapterId/:lessonId だが、
