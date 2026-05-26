@@ -7,7 +7,7 @@ export {
   loadProgress,
   saveProgress,
 } from './progress'
-export { CHAPTERS, findChapter, findLesson } from './registry'
+export { CHAPTERS, findChapter, findLesson, findNextLesson } from './registry'
 export type {
   Chapter,
   Check,

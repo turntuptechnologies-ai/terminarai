@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { evaluateCheck, type Lesson, loadProgress, saveProgress } from '../lessons'
+import { Link } from 'react-router-dom'
+import { evaluateCheck, findNextLesson, type Lesson, loadProgress, saveProgress } from '../lessons'
 import { type CommandContext, type CommandResult, createShell, defaultContext } from '../shell'
 import { registerAllCommands } from '../shell/commands'
 import { createDefaultVfs, createVfs, HOME_PATH, type Vfs } from '../vfs'
@@ -87,21 +88,59 @@ export function LessonView({ lesson, onComplete }: LessonViewProps) {
 
   const currentStep = lesson.steps[stepIndex]
   const initialCwd = lesson.initialCwd ?? HOME_PATH
+  const nextLesson = findNextLesson(lesson.chapterId, lesson.id)
 
   return (
     <div className="flex h-full min-h-0 flex-col">
       <section className="shrink-0 border-zinc-800 border-b bg-zinc-900 px-6 py-4 text-zinc-100">
-        <h1 className="font-semibold text-xl">{lesson.title}</h1>
+        {/* パンくず: いつでも章一覧に戻れるように */}
+        <nav aria-label="現在地" className="text-xs">
+          <Link
+            to={`/tutorial/${lesson.chapterId}`}
+            className="text-zinc-500 transition-colors hover:text-zinc-300"
+          >
+            第 {lesson.chapterId} 章
+          </Link>
+          <span className="mx-2 text-zinc-700">/</span>
+          <span className="text-zinc-400">{lesson.title}</span>
+        </nav>
+
+        <h1 className="mt-1 font-semibold text-xl">{lesson.title}</h1>
         <p className="mt-2 text-sm text-zinc-400">
           <FormattedText text={lesson.description} />
         </p>
 
         {completed ? (
-          <div
-            role="status"
-            className="mt-4 rounded-md border border-emerald-700 bg-emerald-900/30 px-4 py-3 text-emerald-300 text-sm"
-          >
-            全てのステップをクリアしました。
+          <div className="mt-4">
+            <div
+              role="status"
+              className="rounded-md border border-emerald-700 bg-emerald-900/30 px-4 py-3 text-emerald-300 text-sm"
+            >
+              全てのステップをクリアしました。
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2 text-sm">
+              <Link
+                to={`/tutorial/${lesson.chapterId}`}
+                className="rounded border border-zinc-700 px-3 py-1.5 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-100"
+              >
+                ← 章一覧へ戻る
+              </Link>
+              {nextLesson ? (
+                <Link
+                  to={`/tutorial/${nextLesson.chapterId}/${nextLesson.id}`}
+                  className="rounded border border-emerald-600 bg-emerald-700/20 px-3 py-1.5 text-emerald-300 transition-colors hover:border-emerald-400 hover:bg-emerald-700/40"
+                >
+                  次のレッスンへ →
+                </Link>
+              ) : (
+                <Link
+                  to="/tutorial"
+                  className="rounded border border-zinc-700 px-3 py-1.5 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-100"
+                >
+                  全章一覧へ
+                </Link>
+              )}
+            </div>
           </div>
         ) : currentStep ? (
           <div role="status" aria-live="polite" className="mt-4">
