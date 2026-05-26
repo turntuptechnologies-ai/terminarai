@@ -14,3 +14,23 @@ export function findLesson(chapterId: string, lessonId: string): Lesson | undefi
 export function findChapter(chapterId: string): Chapter | undefined {
   return CHAPTERS.find((c) => c.id === chapterId)
 }
+
+/**
+ * 次のレッスンを返す。
+ * - 同じ章内にまだあればそれを返す
+ * - 章の最後の場合は次の章の最初のレッスンを返す
+ * - 全章の最後の場合は undefined
+ */
+export function findNextLesson(chapterId: string, lessonId: string): Lesson | undefined {
+  const chapterIdx = CHAPTERS.findIndex((c) => c.id === chapterId)
+  if (chapterIdx === -1) return undefined
+  const chapter = CHAPTERS[chapterIdx]
+  const lessonIdx = chapter.lessons.findIndex((l) => l.id === lessonId)
+  if (lessonIdx === -1) return undefined
+  if (lessonIdx < chapter.lessons.length - 1) {
+    return chapter.lessons[lessonIdx + 1]
+  }
+  // 章末: 次の章の最初のレッスンを返す
+  const nextChapter = CHAPTERS[chapterIdx + 1]
+  return nextChapter?.lessons[0]
+}
