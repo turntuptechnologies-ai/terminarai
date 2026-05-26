@@ -55,16 +55,39 @@ describe('ls', () => {
     expect(r.stdout).not.toContain('.bashrc')
   })
 
-  it('-a で hidden ファイルも表示', () => {
+  it('-a で hidden ファイル + . / .. 擬似エントリを表示', () => {
     vfs.writeFile('/home/user/.bashrc', 'x')
     const r = ls(['-a'], defaultContext('/home/user'), vfs)
     expect(r.stdout).toContain('.bashrc')
+    // ASCII 順で `.` `..` `.bashrc` README.txt docs hello.txt の順で出る
+    const lines = r.stdout.trim().split('\n')
+    expect(lines[0]).toBe('.')
+    expect(lines[1]).toBe('..')
+    expect(lines).toContain('.bashrc')
+    expect(lines).toContain('README.txt')
   })
 
-  it('-A も hidden 表示 (terminarai では -a と同じ挙動)', () => {
+  it('-A は hidden 表示するが . / .. は出さない (-a と区別)', () => {
     vfs.writeFile('/home/user/.profile', 'x')
     const r = ls(['-A'], defaultContext('/home/user'), vfs)
     expect(r.stdout).toContain('.profile')
+    const lines = r.stdout.trim().split('\n')
+    expect(lines).not.toContain('.')
+    expect(lines).not.toContain('..')
+  })
+
+  it('ルート / の -a でも `.` と `..` が出る (`..` は自分自身)', () => {
+    const r = ls(['-a', '/'], defaultContext(), vfs)
+    const lines = r.stdout.trim().split('\n')
+    expect(lines).toContain('.')
+    expect(lines).toContain('..')
+  })
+
+  it('-la の long 表示で . と .. に詳細情報が付く', () => {
+    const r = ls(['-la'], defaultContext('/home/user'), vfs)
+    // 各行が drwxr-xr-x で始まる行が含まれていれば OK
+    expect(r.stdout).toMatch(/drwxr-xr-x.* \.$/m)
+    expect(r.stdout).toMatch(/drwxr-xr-x.* \.\.$/m)
   })
 
   it('-l で詳細表示 + 先頭に total 行', () => {

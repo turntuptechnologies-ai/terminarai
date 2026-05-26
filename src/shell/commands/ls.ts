@@ -1,11 +1,14 @@
-import type { VfsNode } from '../../vfs'
+import { dirname, type Vfs, type VfsDirectory, type VfsNode } from '../../vfs'
 import type { CommandHandler, CommandResult } from '../types'
 import { invalidOptionError, parseShortFlags } from './parse-args'
 import { compareName, fileSize, formatMode, formatMtime, isHidden } from './util'
 
 interface LsFlags {
   long: boolean
-  all: boolean // -a / -A: 隠しファイルを表示 (terminarai では `.` `..` の擬似エントリは出さない)
+  /** -a: 隠しファイル + `.` / `..` の擬似エントリも表示 */
+  all: boolean
+  /** -A: 隠しファイルは表示するが `.` / `..` は出さない */
+  almostAll: boolean
 }
 
 interface ParsedArgs {
@@ -28,7 +31,8 @@ function parseArgs(args: string[]): ParsedArgs | ParseError {
     ok: true,
     flags: {
       long: parsed.flags.has('l'),
-      all: parsed.flags.has('a') || parsed.flags.has('A'),
+      all: parsed.flags.has('a'),
+      almostAll: parsed.flags.has('A'),
     },
     positional: parsed.positional,
   }
@@ -50,9 +54,28 @@ function totalBlocks(entries: readonly VfsNode[]): number {
 }
 
 /**
+ * `.` (自分自身) と `..` (親) の擬似エントリを構築する。
+ * 親は dirname で解決し、stat に失敗した場合は自身のディレクトリを代用する。
+ * 表示名だけを差し替えた VfsNode を返す。
+ */
+function makeDotEntries(absDirPath: string, dirNode: VfsDirectory, vfs: Vfs): VfsNode[] {
+  const dot: VfsNode = { ...dirNode, name: '.' }
+  const parentAbs = dirname(absDirPath)
+  const parentResult = vfs.stat(parentAbs)
+  const parentNode =
+    parentResult.ok && parentResult.value.type === 'directory' ? parentResult.value : dirNode
+  const dotDot: VfsNode = { ...parentNode, name: '..' }
+  return [dot, dotDot]
+}
+
+/**
  * ls — ファイル / ディレクトリの内容を表示。
  *
- * 対応フラグ: `-l` (詳細表示), `-a` / `-A` (隠しファイルも表示)。
+ * 対応フラグ:
+ * - `-l`: 詳細表示 (パーミッション・サイズ・mtime も)
+ * - `-a`: 隠しファイル + `.` `..` の擬似エントリを表示
+ * - `-A`: 隠しファイルを表示するが `.` `..` は除外
+ *
  * デフォルトは 1 行 1 エントリ (GNU の `ls -1` 相当)。
  *
  * 出力順は GNU 互換:
@@ -63,7 +86,6 @@ function totalBlocks(entries: readonly VfsNode[]): number {
  * exitCode:
  * - 0: 全成功
  * - 2: parseArgs 失敗 / コマンドライン引数の path が解決できない
- *      (GNU の `ls /nope` 実挙動と同じ)
  */
 export const ls: CommandHandler = (args, ctx, vfs): CommandResult => {
   const parsed = parseArgs(args)
@@ -76,7 +98,7 @@ export const ls: CommandHandler = (args, ctx, vfs): CommandResult => {
   let exitCode = 0
   const errors: Array<{ target: string; message: string }> = []
   const files: Array<{ target: string; node: VfsNode }> = []
-  const dirs: Array<{ target: string; entries: VfsNode[] }> = []
+  const dirs: Array<{ target: string; abs: string; dirNode: VfsDirectory; entries: VfsNode[] }> = []
 
   for (const target of targets) {
     const abs = vfs.resolve(ctx.cwd, target)
@@ -96,7 +118,7 @@ export const ls: CommandHandler = (args, ctx, vfs): CommandResult => {
       exitCode = 2
       continue
     }
-    dirs.push({ target, entries: listRes.value })
+    dirs.push({ target, abs, dirNode: stat.value, entries: listRes.value })
   }
 
   let stdout = ''
@@ -111,6 +133,7 @@ export const ls: CommandHandler = (args, ctx, vfs): CommandResult => {
   }
 
   const showDirHeader = dirs.length > 1 || (dirs.length >= 1 && files.length > 0)
+  const showHidden = flags.all || flags.almostAll
 
   for (let idx = 0; idx < dirs.length; idx++) {
     const d = dirs[idx]
@@ -119,8 +142,9 @@ export const ls: CommandHandler = (args, ctx, vfs): CommandResult => {
       if (idx > 0 || files.length > 0) stdout += '\n'
       stdout += `${d.target}:\n`
     }
-    const filtered = flags.all ? d.entries : d.entries.filter((e) => !isHidden(e.name))
-    const sorted = [...filtered].sort((a, b) => compareName(a.name, b.name))
+    const filtered = showHidden ? d.entries : d.entries.filter((e) => !isHidden(e.name))
+    const withDots = flags.all ? [...makeDotEntries(d.abs, d.dirNode, vfs), ...filtered] : filtered
+    const sorted = [...withDots].sort((a, b) => compareName(a.name, b.name))
     if (flags.long) {
       stdout += `total ${totalBlocks(sorted)}\n`
     }
