@@ -27,6 +27,23 @@ function shellError(message: string, exitCode = 2): CommandResult {
   }
 }
 
+/** cwd 変化時に env.PWD / env.OLDPWD を同期した CommandContext を作る。 */
+function syncCtx(prev: CommandContext, nextCwd: string): CommandContext {
+  if (nextCwd === prev.cwd) return prev
+  return {
+    cwd: nextCwd,
+    env: { ...prev.env, PWD: nextCwd, OLDPWD: prev.cwd },
+  }
+}
+
+function makeResult(
+  result: CommandResult,
+  ctx: CommandContext,
+  nextCwd: string,
+): ShellExecuteResult {
+  return { result, nextCwd, nextCtx: syncCtx(ctx, nextCwd) }
+}
+
 class ShellImpl implements Shell {
   private readonly commands = new Map<string, CommandHandler>()
   private readonly vfs: Vfs
@@ -57,21 +74,21 @@ class ShellImpl implements Shell {
 
   execute(input: string, ctx: CommandContext): ShellExecuteResult {
     if (input.trim() === '') {
-      return { result: emptyResult(), nextCwd: ctx.cwd }
+      return makeResult(emptyResult(), ctx, ctx.cwd)
     }
 
     const tokenResult = tokenize(input)
     if (!tokenResult.ok) {
-      return { result: shellError(tokenResult.error.message), nextCwd: ctx.cwd }
+      return makeResult(shellError(tokenResult.error.message), ctx, ctx.cwd)
     }
 
     const parseResult = parse(tokenResult.tokens)
     if (!parseResult.ok) {
-      return { result: shellError(parseResult.error.message), nextCwd: ctx.cwd }
+      return makeResult(shellError(parseResult.error.message), ctx, ctx.cwd)
     }
 
     if (!parseResult.command) {
-      return { result: emptyResult(), nextCwd: ctx.cwd }
+      return makeResult(emptyResult(), ctx, ctx.cwd)
     }
 
     const { argv, stdoutRedirect } = parseResult.command
@@ -80,14 +97,15 @@ class ShellImpl implements Shell {
 
     const handler = this.commands.get(cmdName)
     if (!handler) {
-      return {
-        result: {
+      return makeResult(
+        {
           stdout: '',
           stderr: ensureTrailingNewline(`terminarai: ${cmdName}: command not found`),
           exitCode: 127,
         },
-        nextCwd: ctx.cwd,
-      }
+        ctx,
+        ctx.cwd,
+      )
     }
 
     // ハンドラの例外は UI まで伝播させない。学習用アプリでシェルが死ぬのは最悪体験。
@@ -97,19 +115,20 @@ class ShellImpl implements Shell {
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
       console.error(`[terminarai] handler '${cmdName}' threw:`, e)
-      return {
-        result: {
+      return makeResult(
+        {
           stdout: '',
           stderr: ensureTrailingNewline(`terminarai: ${cmdName}: internal error: ${msg}`),
           exitCode: 1,
         },
-        nextCwd: ctx.cwd,
-      }
+        ctx,
+        ctx.cwd,
+      )
     }
     const nextCwd = handlerResult.cwdAfter ?? ctx.cwd
 
     if (!stdoutRedirect) {
-      return { result: handlerResult, nextCwd }
+      return makeResult(handlerResult, ctx, nextCwd)
     }
 
     // リダイレクト適用: stdout を VFS に書き込み、外部に出さない
@@ -119,26 +138,28 @@ class ShellImpl implements Shell {
       : this.vfs.writeFile(targetAbs, handlerResult.stdout)
 
     if (!writeRes.ok) {
-      return {
-        result: {
+      return makeResult(
+        {
           stdout: '',
           stderr: ensureTrailingNewline(
             `${cmdName}: ${stdoutRedirect.target}: ${writeRes.error.message}`,
           ),
           exitCode: 1,
         },
+        ctx,
         nextCwd,
-      }
+      )
     }
 
-    return {
-      result: {
+    return makeResult(
+      {
         stdout: '',
         stderr: handlerResult.stderr,
         exitCode: handlerResult.exitCode,
       },
+      ctx,
       nextCwd,
-    }
+    )
   }
 }
 

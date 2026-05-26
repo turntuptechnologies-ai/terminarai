@@ -58,6 +58,28 @@ describe('Shell', () => {
     expect(nextCwd).toBe('/home/user/docs')
   })
 
+  it('nextCtx は cwd 変化時に env.PWD / env.OLDPWD も同期する', () => {
+    const fakeCd: CommandHandler = (args) => ({
+      stdout: '',
+      stderr: '',
+      exitCode: 0,
+      cwdAfter: args[0],
+    })
+    shell.register('cd', fakeCd)
+    const { nextCtx } = shell.execute('cd /tmp', defaultContext('/home/user'))
+    expect(nextCtx.cwd).toBe('/tmp')
+    expect(nextCtx.env.PWD).toBe('/tmp')
+    expect(nextCtx.env.OLDPWD).toBe('/home/user')
+  })
+
+  it('nextCtx は cwd 不変なら元の ctx と同一参照', () => {
+    const noop: CommandHandler = () => ({ stdout: '', stderr: '', exitCode: 0 })
+    shell.register('noop', noop)
+    const ctx = defaultContext('/home/user')
+    const { nextCtx } = shell.execute('noop', ctx)
+    expect(nextCtx).toBe(ctx)
+  })
+
   it('cwdAfter が無ければ nextCwd は元のまま', () => {
     const noop: CommandHandler = () => ({ stdout: '', stderr: '', exitCode: 0 })
     shell.register('noop', noop)

@@ -48,6 +48,19 @@ describe('Terminal', () => {
     expect(await screen.findByText('/home/user/docs')).toBeInTheDocument()
   })
 
+  it('cd → cd - で前のディレクトリに戻れる', async () => {
+    const user = userEvent.setup()
+    render(<Terminal shell={shell} initialCtx={defaultContext('/home/user')} />)
+    const input = screen.getByLabelText('ターミナル入力')
+    await user.type(input, 'cd docs{Enter}')
+    await user.type(input, 'cd -{Enter}')
+    await user.type(input, 'pwd{Enter}')
+    // cd - の stdout + pwd の stdout で /home/user が pre 要素として最低 2 つ出るはず
+    const pres = document.querySelectorAll('pre')
+    const homeUserOutputs = Array.from(pres).filter((p) => p.textContent === '/home/user\n')
+    expect(homeUserOutputs.length).toBeGreaterThanOrEqual(2)
+  })
+
   it('未知コマンドは stderr で赤系表示', async () => {
     const user = userEvent.setup()
     render(<Terminal shell={shell} initialCtx={defaultContext('/home/user')} />)
