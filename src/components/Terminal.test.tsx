@@ -222,4 +222,43 @@ describe('Terminal', () => {
     const hasHi = Array.from(pres).some((p) => p.textContent === 'hi\n')
     expect(hasHi).toBe(true)
   })
+
+  it('echo (引数なし) は空行 1 つ分の <pre> が描画される', async () => {
+    const user = userEvent.setup()
+    render(<Terminal shell={shell} initialCtx={defaultContext('/home/user')} />)
+    const input = screen.getByLabelText('ターミナル入力')
+    await user.type(input, 'echo{Enter}')
+    // echo は引数なしでも改行のみ stdout に出す → pre 要素の textContent が '\n'
+    const pres = document.querySelectorAll('pre')
+    const hasBlankLine = Array.from(pres).some((p) => p.textContent === '\n')
+    expect(hasBlankLine).toBe(true)
+  })
+
+  it('↑ → 編集 → ↓ で「編集破棄」して元の draft に戻る (bash 互換)', async () => {
+    const user = userEvent.setup()
+    render(<Terminal shell={shell} initialCtx={defaultContext('/home/user')} />)
+    const input = screen.getByLabelText('ターミナル入力') as HTMLInputElement
+    await user.type(input, 'pwd{Enter}')
+
+    // 入力途中 (draftBeforeNav = 'l') の状態で ↑ を押す
+    await user.type(input, 'l')
+    expect(input.value).toBe('l')
+    await user.type(input, '{ArrowUp}')
+    expect(input.value).toBe('pwd')
+
+    // 履歴遡り中に編集する (lpwd になる)
+    await user.type(input, 'l')
+    expect(input.value).toBe('pwdl')
+
+    // ↓ で履歴カーソルが -1 に戻ったとき、元の draft ('l') が復元される (編集破棄)
+    await user.type(input, '{ArrowDown}')
+    expect(input.value).toBe('l')
+  })
+
+  it('ランドマーク (region) と出力エリア (log) の a11y 構造', () => {
+    render(<Terminal shell={shell} initialCtx={defaultContext('/home/user')} />)
+    // root は role="region"、出力エリアは role="log" として SR に区別される
+    expect(screen.getByRole('region', { name: /仮想ターミナル/ })).toBeInTheDocument()
+    expect(screen.getByRole('log', { name: /ターミナル出力/ })).toBeInTheDocument()
+  })
 })

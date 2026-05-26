@@ -144,33 +144,43 @@ export function Terminal({ shell, initialCtx, banner = '', onAfterExecute }: Ter
   }
 
   return (
+    // role="region" のランドマーク。出力は role="log" + aria-live で SR に変化を伝え、
+    // 入力は <form><input> として残置することで、SR の仮想カーソルが出力を辿れるようにする
+    // (旧 role="application" は virtual cursor を無効化していたため a11y が低下していた)。
     // biome-ignore lint/a11y/useKeyWithClickEvents: キー操作は input 自身が受け取る (このコンテナはフォーカスを引き取る用)
     <div
       ref={containerRef}
       onClick={focusInput}
-      role="application"
+      role="region"
       aria-label="terminarai 仮想ターミナル"
       className="h-full min-h-0 flex-1 overflow-y-auto bg-zinc-950 p-4 font-mono text-sm leading-relaxed text-zinc-100"
       data-testid="terminal-root"
     >
-      {history.map((entry) => (
-        <div key={entry.id}>
-          {entry.prompt && (
-            <div className="whitespace-pre-wrap break-all">
-              <Prompt cwd={entry.prompt.cwd} />
-              <span>{entry.prompt.input}</span>
-            </div>
-          )}
-          {entry.stdout && (
-            <pre className="m-0 whitespace-pre-wrap break-words text-zinc-100">{entry.stdout}</pre>
-          )}
-          {entry.stderr && (
-            <pre className="m-0 whitespace-pre-wrap break-words text-rose-400">{entry.stderr}</pre>
-          )}
-        </div>
-      ))}
+      <div role="log" aria-live="polite" aria-label="ターミナル出力">
+        {history.map((entry) => (
+          <div key={entry.id}>
+            {entry.prompt && (
+              <div className="whitespace-pre-wrap break-all">
+                <Prompt cwd={entry.prompt.cwd} />
+                <span>{entry.prompt.input}</span>
+              </div>
+            )}
+            {entry.stdout && (
+              <pre className="m-0 whitespace-pre-wrap break-words text-zinc-100">
+                {entry.stdout}
+              </pre>
+            )}
+            {entry.stderr && (
+              <pre className="m-0 whitespace-pre-wrap break-words text-rose-400">
+                {entry.stderr}
+              </pre>
+            )}
+          </div>
+        ))}
+      </div>
       <form onSubmit={handleSubmit} className="flex items-center">
         <Prompt cwd={ctx.cwd} />
+        {/* 既知の制約: <input> は単一行入力のため、複数行ペーストは最初の改行で打ち切られる */}
         <input
           ref={inputRef}
           value={input}
