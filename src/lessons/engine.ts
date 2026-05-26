@@ -46,5 +46,8 @@ export function evaluateCheck(check: Check, ctx: EvalContext): boolean {
     case 'or':
       if (check.checks.length === 0) return false
       return check.checks.some((c) => evaluateCheck(c, ctx))
+
+    case 'not':
+      return !evaluateCheck(check.check, ctx)
   }
 }
