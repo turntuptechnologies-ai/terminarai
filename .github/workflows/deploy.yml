@@ -1,11 +1,12 @@
-name: Deploy to GitHub Pages
+name: CI / Deploy
 
+# PR では check ジョブのみ、main への push では check → deploy の順で実行する。
 on:
+  pull_request:
   push:
     branches: [main]
   workflow_dispatch:
 
-# GitHub Pages デプロイに必要な権限
 permissions:
   contents: read
   pages: write
@@ -17,8 +18,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
-    name: Build
+  check:
+    name: Lint, Test, Build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -47,17 +48,21 @@ jobs:
       - name: Build
         run: pnpm build
 
+      # main への push のみ Pages 用に artifact を作成
       - name: Setup Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/configure-pages@v5
 
-      - name: Upload artifact
+      - name: Upload Pages artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
 
   deploy:
-    name: Deploy
-    needs: build
+    name: Deploy to GitHub Pages
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: check
     runs-on: ubuntu-latest
     environment:
       name: github-pages
