@@ -42,13 +42,24 @@ export interface VfsError {
 export type VfsResult<T> = { ok: true; value: T } | { ok: false; error: VfsError }
 
 export interface Vfs {
-  /** cwd を基準に path を解決し、正規化された絶対パスを返す。 */
+  /**
+   * cwd を基準に path を解決し、正規化された絶対パスを返す。
+   *
+   * 想定: cwd は絶対パス (省略時 / 不正値は内部で '/' にフォールバック)。
+   * path === '' は cwd の正規化を返す。
+   */
   resolve(cwd: string, path: string): string
 
   // --- read ---
   stat(path: string): VfsResult<VfsNode>
+  /**
+   * 指定ディレクトリの子ノードを返す。**戻り順序は VfsDirectory.children への挿入順** で、
+   * アルファベット順ではない。表示時のソートは呼び出し側 (例: ls の compareName) が行う。
+   */
   list(path: string): VfsResult<VfsNode[]>
   readFile(path: string): VfsResult<string>
+  /** path に何らかのノードが存在するか (ファイル or ディレクトリ問わず)。stat の真偽だけ欲しい場合の糖衣。 */
+  exists(path: string): boolean
 
   // --- write ---
   writeFile(path: string, content: string): VfsResult<void>

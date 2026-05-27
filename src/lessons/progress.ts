@@ -49,7 +49,9 @@ export function saveProgress(chapterId: string, lessonId: string, progress: Less
   try {
     storage.setItem(storageKey(chapterId, lessonId), JSON.stringify(merged))
   } catch {
-    // QuotaExceeded 等は黙ってスキップ
+    // QuotaExceededError (容量超過) や SecurityError (プライベート閲覧モード) を黙って無視する。
+    // 進捗保存はベストエフォートで、失敗してもセッション内の学習体験 (在メモリの state) は
+    // 維持される。ユーザに警告を出すほどの実害はなく、復旧手段もないため silent fail とする。
   }
 }
 

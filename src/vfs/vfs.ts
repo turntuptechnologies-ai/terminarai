@@ -70,8 +70,12 @@ function isValidNode(value: unknown): value is VfsNode {
   if (typeof node.mode !== 'number') return false
   if (node.type === 'directory') {
     if (!node.children || typeof node.children !== 'object') return false
-    for (const child of Object.values(node.children)) {
+    // children のキーと child.name の整合性を検証する。
+    // 不整合 (例: { 'foo': { name: 'bar', ... } }) は serialize 経由でない手動 JSON で
+    // 混入し得るため、ロード時に弾いておく。
+    for (const [key, child] of Object.entries(node.children)) {
       if (!isValidNode(child)) return false
+      if (child.name !== key) return false
     }
     return true
   }
@@ -97,6 +101,9 @@ class VfsImpl implements Vfs {
     let traveled = ''
     for (const seg of segments) {
       if (!isDirectory(current)) {
+        // traveled は「ファイルに当たった時点までのパス」。初回ループでは traveled が空文字
+        // (= ルート直下のセグメントがファイル) になり得るため、その場合は normalized を使う。
+        // ルートは必ず directory であるため、初回時点の current=root はここに来ない。
         return err('ENOTDIR', 'Not a directory', traveled || normalized)
       }
       const next: VfsNode | undefined = current.children[seg]
@@ -113,6 +120,10 @@ class VfsImpl implements Vfs {
     return this.getNode(path)
   }
 
+  /**
+   * children を**挿入順**で返す (Object.values の保証)。
+   * 表示時のソートは呼び出し側 (例: ls の compareName) が行う。
+   */
   list(path: string): VfsResult<VfsNode[]> {
     const result = this.getNode(path)
     if (!result.ok) return result
@@ -120,6 +131,10 @@ class VfsImpl implements Vfs {
       return err('ENOTDIR', 'Not a directory', path)
     }
     return ok(Object.values(result.value.children))
+  }
+
+  exists(path: string): boolean {
+    return this.getNode(path).ok
   }
 
   readFile(path: string): VfsResult<string> {
@@ -162,6 +177,8 @@ class VfsImpl implements Vfs {
       existingResult.value.mtime = now()
       return ok(undefined)
     }
+    // ENOENT のみ writeFile に委譲して新規作成扱いにする (シェルの `>>` 互換)。
+    // ENOTDIR / EINVAL 等は既存ファイルを参照できないので、エラーを伝播させる。
     if (existingResult.error.code !== 'ENOENT') return existingResult
     return this.writeFile(path, content)
   }
