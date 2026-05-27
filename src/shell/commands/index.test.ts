@@ -14,11 +14,13 @@ describe('registerAllCommands', () => {
       'cd',
       'cp',
       'echo',
+      'head',
       'ls',
       'mkdir',
       'mv',
       'pwd',
       'rm',
+      'tail',
       'touch',
       'vi',
     ]) {
