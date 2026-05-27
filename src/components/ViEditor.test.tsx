@@ -72,14 +72,24 @@ describe('ViEditor', () => {
     expect(screen.getByText(/"note.txt" written/)).toBeInTheDocument()
   })
 
-  it(':wq で onSave + onClose("save") が呼ばれる', async () => {
+  it(':wq で onClose("save") のみ呼ばれる (onSave は :w 専用)', async () => {
     const { textarea, user, onSave, onClose } = setup('')
     await user.click(textarea)
     await user.keyboard('i')
     await user.type(textarea, 'world')
     await user.keyboard('{Escape}:wq{Enter}')
-    expect(onSave).toHaveBeenCalledWith('world')
+    // 保存処理は Terminal 側 (onClose の受け手) が担う。
+    // onSave も呼ぶと 2 重に保存されて履歴が重複する。
+    expect(onSave).not.toHaveBeenCalled()
     expect(onClose).toHaveBeenCalledWith('save', 'world')
+  })
+
+  it(':x も :wq と同じ動作 (onClose("save") のみ)', async () => {
+    const { textarea, user, onSave, onClose } = setup('orig')
+    await user.click(textarea)
+    await user.keyboard('iA{Escape}:x{Enter}')
+    expect(onSave).not.toHaveBeenCalled()
+    expect(onClose).toHaveBeenCalledWith('save', expect.stringContaining('A'))
   })
 
   it(':q (未変更) で onClose("cancel") が呼ばれる', async () => {

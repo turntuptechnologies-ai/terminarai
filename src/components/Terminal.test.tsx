@@ -282,12 +282,12 @@ describe('Terminal', () => {
 
       // エディタが閉じる
       expect(screen.queryByTestId('vi-editor')).not.toBeInTheDocument()
-      // 履歴に written メッセージ
+      // 履歴に written メッセージが **ちょうど 1 つ** 出る (#77 回帰防止: 旧実装は 2 重に出ていた)
       const pres = document.querySelectorAll('pre')
-      const hasWritten = Array.from(pres).some(
+      const writtenLines = Array.from(pres).filter(
         (p) => p.textContent?.includes('"memo.txt"') && p.textContent?.includes('written'),
       )
-      expect(hasWritten).toBe(true)
+      expect(writtenLines.length).toBe(1)
 
       // VFS にファイルが書き込まれている
       const vfs = shell.getVfs()

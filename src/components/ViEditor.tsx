@@ -73,8 +73,8 @@ export function ViEditor({ display, initialContent, onSave, onClose }: ViEditorP
         break
       case 'wq':
       case 'x':
-        onSave(buffer)
-        setModified(false)
+        // 保存処理は onClose('save') 受け手 (Terminal) の責務。
+        // onSave は `:w` (継続保存) 専用なのでここでは呼ばない (2 重保存防止)。
         onClose('save', buffer)
         break
       case 'q':
