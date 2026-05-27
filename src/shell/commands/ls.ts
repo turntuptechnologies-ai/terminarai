@@ -1,6 +1,6 @@
 import { dirname, type Vfs, type VfsDirectory, type VfsNode } from '../../vfs'
 import type { CommandHandler, CommandResult } from '../types'
-import { invalidOptionError, parseShortFlags } from './parse-args'
+import { invalidOptionError, parseArgs as parseFlags } from './parse-args'
 import { compareName, fileSize, formatMode, formatMtime, isHidden } from './util'
 
 interface LsFlags {
@@ -23,9 +23,12 @@ interface ParseError {
 }
 
 function parseArgs(args: string[]): ParsedArgs | ParseError {
-  const parsed = parseShortFlags(args, 'laA')
+  const parsed = parseFlags(args, {
+    short: 'laA',
+    longAliases: { long: 'l', all: 'a', 'almost-all': 'A' },
+  })
   if (!parsed.ok) {
-    return { ok: false, message: invalidOptionError('ls', parsed.invalidFlag) }
+    return { ok: false, message: invalidOptionError('ls', parsed.invalidFlag, parsed.isLong) }
   }
   return {
     ok: true,

@@ -1,17 +1,24 @@
 import type { CommandHandler } from '../types'
-import { invalidOptionError, parseShortFlags } from './parse-args'
+import { invalidOptionError, parseArgs } from './parse-args'
 
 /**
  * rm — ファイル / ディレクトリを削除する。
  *
- * - `-r` / `-R` で再帰削除 (ディレクトリ削除には必須)
- * - `-f` で存在しないパスを黙って無視 + エラー出力なし
+ * - `-r` / `-R` / `--recursive` で再帰削除 (ディレクトリ削除には必須)
+ * - `-f` / `--force` で存在しないパスを黙って無視 + エラー出力なし
  * - `-i` (interactive) は terminarai に prompt 機構がないため未対応
  */
 export const rm: CommandHandler = (args, ctx, vfs) => {
-  const parsed = parseShortFlags(args, 'rRf')
+  const parsed = parseArgs(args, {
+    short: 'rRf',
+    longAliases: { recursive: 'r', force: 'f' },
+  })
   if (!parsed.ok) {
-    return { stdout: '', stderr: invalidOptionError('rm', parsed.invalidFlag), exitCode: 1 }
+    return {
+      stdout: '',
+      stderr: invalidOptionError('rm', parsed.invalidFlag, parsed.isLong),
+      exitCode: 1,
+    }
   }
   const recursive = parsed.flags.has('r') || parsed.flags.has('R')
   const force = parsed.flags.has('f')

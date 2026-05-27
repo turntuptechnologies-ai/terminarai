@@ -141,4 +141,32 @@ describe('ls', () => {
     expect(r.exitCode).toBe(0)
     expect(r.stdout).toBe('-l\n')
   })
+
+  describe('長フラグ (GNU 互換)', () => {
+    it('--all は -a と同じ挙動', () => {
+      vfs.writeFile('/home/user/.dotfile', 'x')
+      const a = ls(['-a'], defaultContext('/home/user'), vfs).stdout
+      const longA = ls(['--all'], defaultContext('/home/user'), vfs).stdout
+      expect(longA).toBe(a)
+    })
+
+    it('--long は -l と同じ挙動', () => {
+      const short = ls(['-l'], defaultContext('/home/user'), vfs).stdout
+      const long = ls(['--long'], defaultContext('/home/user'), vfs).stdout
+      expect(long).toBe(short)
+    })
+
+    it('--almost-all は -A と同じ挙動', () => {
+      vfs.writeFile('/home/user/.dotfile', 'x')
+      const short = ls(['-A'], defaultContext('/home/user'), vfs).stdout
+      const long = ls(['--almost-all'], defaultContext('/home/user'), vfs).stdout
+      expect(long).toBe(short)
+    })
+
+    it('未知の長フラグはエラー (unrecognized option)', () => {
+      const r = ls(['--nope'], defaultContext(), vfs)
+      expect(r.exitCode).toBe(2)
+      expect(r.stderr).toContain("unrecognized option '--nope'")
+    })
+  })
 })

@@ -1,5 +1,5 @@
 import type { CommandHandler } from '../types'
-import { invalidOptionError, parseShortFlags } from './parse-args'
+import { invalidOptionError, parseArgs } from './parse-args'
 
 /** EINVAL のメッセージは VFS が "Cannot ..." と大文字で始まることがあるため、
  *  GNU 風 ("cmd: cannot ...") に揃えるために先頭を小文字化する。 */
@@ -17,9 +17,13 @@ function lowerFirst(s: string): string {
  * - `-i` / `-n` / `-t` 等は MVP 未対応 (フラグ自体は invalid option エラー)
  */
 export const mv: CommandHandler = (args, ctx, vfs) => {
-  const parsed = parseShortFlags(args, 'f')
+  const parsed = parseArgs(args, { short: 'f', longAliases: { force: 'f' } })
   if (!parsed.ok) {
-    return { stdout: '', stderr: invalidOptionError('mv', parsed.invalidFlag), exitCode: 1 }
+    return {
+      stdout: '',
+      stderr: invalidOptionError('mv', parsed.invalidFlag, parsed.isLong),
+      exitCode: 1,
+    }
   }
   const operands = parsed.positional
 
