@@ -10,7 +10,13 @@ export interface CommandResult {
   stdout: string
   stderr: string
   exitCode: number
-  /** cd だけが使う。他のコマンドは undefined のまま。 */
+  /**
+   * cd だけが使う。他のコマンドは undefined のまま。
+   *
+   * **絶対パス**を期待する。シェルは normalize せずに nextCwd へそのまま採用するため、
+   * 相対パスを返すと VFS のパス解決が壊れる。
+   * 算出は `vfs.resolve(ctx.cwd, target)` を経由するのが定石 (cd 実装を参照)。
+   */
   cwdAfter?: string
   /**
    * clear コマンドが画面クリアを要求するためのシグナル。

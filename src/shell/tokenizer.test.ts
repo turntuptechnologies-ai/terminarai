@@ -172,4 +172,42 @@ describe('tokenize', () => {
       ])
     })
   })
+
+  describe('ダブルクォート内のエスケープ仕様ロック (#11)', () => {
+    // 現状: \" と \\ のみ展開、それ以外 (\$, `\``, \n 等) は \ をリテラル保持。
+    // 将来 \$ や `\`` を解釈するとき矛盾を出さないよう、現状をテストで固定。
+    it('\\" は " に展開', () => {
+      expect(ok('"a\\"b"')).toEqual([{ type: 'word', value: 'a"b' }])
+    })
+
+    it('\\\\ は \\ に展開', () => {
+      expect(ok('"a\\\\b"')).toEqual([{ type: 'word', value: 'a\\b' }])
+    })
+
+    it('\\$ は \\ を残す (未解釈)', () => {
+      expect(ok('"\\$HOME"')).toEqual([{ type: 'word', value: '\\$HOME' }])
+    })
+
+    it('\\` は \\ を残す (未解釈)', () => {
+      expect(ok('"\\`cmd\\`"')).toEqual([{ type: 'word', value: '\\`cmd\\`' }])
+    })
+
+    it('\\n も \\ を残す (改行文字に変換しない)', () => {
+      expect(ok('"a\\nb"')).toEqual([{ type: 'word', value: 'a\\nb' }])
+    })
+  })
+
+  describe('連続クォートの単語連結 (#11)', () => {
+    it("'a''b' は単一 word 'ab'", () => {
+      expect(ok("'a''b'")).toEqual([{ type: 'word', value: 'ab' }])
+    })
+
+    it('\'a\'"b" は単一 word "ab" (異種クォート連結)', () => {
+      expect(ok('\'a\'"b"')).toEqual([{ type: 'word', value: 'ab' }])
+    })
+
+    it('foo"bar baz"qux は中身に空白を含む 1 word', () => {
+      expect(ok('foo"bar baz"qux')).toEqual([{ type: 'word', value: 'foobar bazqux' }])
+    })
+  })
 })
