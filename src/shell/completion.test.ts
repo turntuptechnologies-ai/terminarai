@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { createDefaultVfs, type Vfs } from '../vfs'
 import { complete, longestCommonPrefix, splitForCompletion } from './completion'
 
-const REGISTERED = ['cat', 'cd', 'cp', 'echo', 'ls', 'mkdir', 'mv', 'pwd', 'rm', 'touch']
+const REGISTERED = ['cat', 'cd', 'cp', 'echo', 'ls', 'mkdir', 'mv', 'pwd', 'rm', 'touch', 'vi']
 
 describe('longestCommonPrefix', () => {
   it('空配列なら空文字', () => {

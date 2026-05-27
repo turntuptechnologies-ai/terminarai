@@ -11,6 +11,7 @@ import { mv } from './mv'
 import { pwd } from './pwd'
 import { rm } from './rm'
 import { touch } from './touch'
+import { vi } from './vi'
 
 export { cat } from './cat'
 export { cd } from './cd'
@@ -23,6 +24,7 @@ export { mv } from './mv'
 export { pwd } from './pwd'
 export { rm } from './rm'
 export { touch } from './touch'
+export { vi } from './vi'
 
 /** 現在実装済みの全コマンドをまとめてシェルに登録する (登録順は ABC 順)。 */
 export function registerAllCommands(shell: Shell): void {
@@ -37,4 +39,5 @@ export function registerAllCommands(shell: Shell): void {
   shell.register('pwd', pwd)
   shell.register('rm', rm)
   shell.register('touch', touch)
+  shell.register('vi', vi)
 }

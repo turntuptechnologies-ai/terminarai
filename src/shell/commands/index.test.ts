@@ -9,7 +9,19 @@ describe('registerAllCommands', () => {
     const vfs = createDefaultVfs()
     const shell = createShell(vfs)
     registerAllCommands(shell)
-    for (const name of ['cat', 'cd', 'cp', 'echo', 'ls', 'mkdir', 'mv', 'pwd', 'rm', 'touch']) {
+    for (const name of [
+      'cat',
+      'cd',
+      'cp',
+      'echo',
+      'ls',
+      'mkdir',
+      'mv',
+      'pwd',
+      'rm',
+      'touch',
+      'vi',
+    ]) {
       expect(shell.has(name)).toBe(true)
     }
   })

@@ -1,6 +1,7 @@
 import { type FormEvent, type KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react'
 import type { CommandContext, CommandResult, Shell } from '../shell'
 import { Prompt } from './Prompt'
+import { ViEditor } from './ViEditor'
 
 interface TerminalProps {
   shell: Shell
@@ -23,6 +24,18 @@ interface HistoryEntry {
   stderr: string
 }
 
+interface EditorState {
+  /** 元の `vi <file>` 入力。保存時の onAfterExecute 再発火で使う。 */
+  originalInput: string
+  /** 編集時点の CommandContext。再発火時にそのまま渡す。 */
+  ctx: CommandContext
+  /** vfs.writeFile 用の絶対パス */
+  path: string
+  /** ステータスバー表示用 */
+  display: string
+  initialContent: string
+}
+
 export function Terminal({ shell, initialCtx, banner = '', onAfterExecute }: TerminalProps) {
   // エントリ ID は React の key 安定性のためインスタンスローカルに管理する
   const idCounterRef = useRef(0)
@@ -37,6 +50,8 @@ export function Terminal({ shell, initialCtx, banner = '', onAfterExecute }: Ter
   const [historyCursor, setHistoryCursor] = useState(-1)
   /** 履歴遡り中に元の編集中文字列を保存して、↓ で戻れるようにする。 */
   const [draftBeforeNav, setDraftBeforeNav] = useState('')
+  /** vi 等のフルスクリーンエディタが起動中なら、Terminal の代わりに <ViEditor /> をレンダ。 */
+  const [editor, setEditor] = useState<EditorState | null>(null)
 
   const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -89,9 +104,69 @@ export function Terminal({ shell, initialCtx, banner = '', onAfterExecute }: Ter
 
     onAfterExecute?.(input, result, nextCtx)
 
+    // editor シグナルがあれば Terminal 表示の代わりにエディタを起動
+    if (result.editor) {
+      setEditor({
+        originalInput: input,
+        ctx: nextCtx,
+        path: result.editor.path,
+        display: result.editor.display,
+        initialContent: result.editor.initialContent,
+      })
+    }
+
     setInput('')
     setHistoryCursor(-1)
     setDraftBeforeNav('')
+  }
+
+  /** vi の `:w` (保存のみ、エディタは継続) */
+  const handleEditorSave = (content: string) => {
+    if (!editor) return
+    const vfs = shell.getVfs()
+    const writeRes = vfs.writeFile(editor.path, content)
+    if (!writeRes.ok) {
+      // ViEditor 側でステータス更新まではしないので、ここで履歴に stderr を積んで知らせる
+      setHistory((h) => [
+        ...h,
+        {
+          id: nextEntryId(),
+          prompt: null,
+          stdout: '',
+          stderr: `vi: ${editor.display}: ${writeRes.error.message}\n`,
+        },
+      ])
+      return
+    }
+    // 行数・バイト数の概算を計算して履歴に積む (vi の "written" 表示風)
+    const lines = content === '' ? 0 : content.split('\n').length
+    const bytes = content.length
+    setHistory((h) => [
+      ...h,
+      {
+        id: nextEntryId(),
+        prompt: null,
+        stdout: `"${editor.display}" ${lines}L, ${bytes}C written\n`,
+        stderr: '',
+      },
+    ])
+  }
+
+  /** vi の `:wq` / `:q` / `:q!` でエディタが閉じるときの後処理 */
+  const handleEditorClose = (action: 'save' | 'cancel', content: string) => {
+    if (!editor) return
+    const ed = editor
+    if (action === 'save') {
+      handleEditorSave(content)
+    }
+    setEditor(null)
+    // 保存系で終了した場合は、レッスン側に「vi の結果として VFS が変わった」ことを伝える
+    if (action === 'save') {
+      const syntheticResult: CommandResult = { stdout: '', stderr: '', exitCode: 0 }
+      onAfterExecute?.(ed.originalInput, syntheticResult, ed.ctx)
+    }
+    // フォーカスを Terminal の入力欄に戻す
+    setTimeout(() => inputRef.current?.focus(), 0)
   }
 
   const handleTab = () => {
@@ -141,6 +216,25 @@ export function Terminal({ shell, initialCtx, banner = '', onAfterExecute }: Ter
         setInput(commandHistory[commandHistory.length - 1 - next])
       }
     }
+  }
+
+  // エディタ起動中は ViEditor がフルスクリーンを占めるので、Terminal の通常 UI は描画しない。
+  // 終了 (:wq / :q / :q!) で setEditor(null) されると元の Terminal に戻る。
+  if (editor) {
+    return (
+      <div
+        ref={containerRef}
+        data-testid="terminal-root"
+        className="flex h-full min-h-0 flex-1 flex-col"
+      >
+        <ViEditor
+          display={editor.display}
+          initialContent={editor.initialContent}
+          onSave={handleEditorSave}
+          onClose={handleEditorClose}
+        />
+      </div>
+    )
   }
 
   return (

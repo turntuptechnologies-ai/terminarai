@@ -72,6 +72,10 @@ class ShellImpl implements Shell {
     return completeImpl(input, ctx.cwd, this.commands.keys(), this.vfs)
   }
 
+  getVfs(): Vfs {
+    return this.vfs
+  }
+
   execute(input: string, ctx: CommandContext): ShellExecuteResult {
     if (input.trim() === '') {
       return makeResult(emptyResult(), ctx, ctx.cwd)
