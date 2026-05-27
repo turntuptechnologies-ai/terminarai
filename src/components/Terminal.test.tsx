@@ -261,4 +261,77 @@ describe('Terminal', () => {
     expect(screen.getByRole('region', { name: /仮想ターミナル/ })).toBeInTheDocument()
     expect(screen.getByRole('log', { name: /ターミナル出力/ })).toBeInTheDocument()
   })
+
+  describe('vi editor integration', () => {
+    it('vi <file> でエディタが開き、:wq で保存して Terminal に戻る', async () => {
+      const user = userEvent.setup()
+      render(<Terminal shell={shell} initialCtx={defaultContext('/home/user')} />)
+      const input = screen.getByLabelText('ターミナル入力')
+
+      // 起動: 新規ファイルを開く
+      await user.type(input, 'vi memo.txt{Enter}')
+      // エディタが現れる (vi-editor testid + 編集領域 label)
+      const editor = await screen.findByTestId('vi-editor')
+      expect(editor).toBeInTheDocument()
+      const textarea = screen.getByLabelText('vi 編集領域') as HTMLTextAreaElement
+      expect(textarea.value).toBe('')
+
+      // INSERT に入って書き込む
+      await user.click(textarea)
+      await user.keyboard('iHello{Escape}:wq{Enter}')
+
+      // エディタが閉じる
+      expect(screen.queryByTestId('vi-editor')).not.toBeInTheDocument()
+      // 履歴に written メッセージ
+      const pres = document.querySelectorAll('pre')
+      const hasWritten = Array.from(pres).some(
+        (p) => p.textContent?.includes('"memo.txt"') && p.textContent?.includes('written'),
+      )
+      expect(hasWritten).toBe(true)
+
+      // VFS にファイルが書き込まれている
+      const vfs = shell.getVfs()
+      const read = vfs.readFile('/home/user/memo.txt')
+      expect(read.ok && read.value).toBe('Hello')
+    })
+
+    it('vi <既存ファイル> でファイル内容を読み込む', async () => {
+      const user = userEvent.setup()
+      const vfs = shell.getVfs()
+      vfs.writeFile('/home/user/preset.txt', 'existing content')
+      render(<Terminal shell={shell} initialCtx={defaultContext('/home/user')} />)
+      const input = screen.getByLabelText('ターミナル入力')
+
+      await user.type(input, 'vi preset.txt{Enter}')
+      const textarea = (await screen.findByLabelText('vi 編集領域')) as HTMLTextAreaElement
+      expect(textarea.value).toBe('existing content')
+    })
+
+    it(':q (未変更) でファイルは書き換わらない', async () => {
+      const user = userEvent.setup()
+      const vfs = shell.getVfs()
+      vfs.writeFile('/home/user/preset.txt', 'untouched')
+      render(<Terminal shell={shell} initialCtx={defaultContext('/home/user')} />)
+      const input = screen.getByLabelText('ターミナル入力')
+
+      await user.type(input, 'vi preset.txt{Enter}')
+      const textarea = await screen.findByLabelText('vi 編集領域')
+      await user.click(textarea)
+      await user.keyboard(':q{Enter}')
+
+      expect(screen.queryByTestId('vi-editor')).not.toBeInTheDocument()
+      const read = vfs.readFile('/home/user/preset.txt')
+      expect(read.ok && read.value).toBe('untouched')
+    })
+
+    it('vi ディレクトリ → エラーで editor は開かない', async () => {
+      const user = userEvent.setup()
+      render(<Terminal shell={shell} initialCtx={defaultContext('/home/user')} />)
+      const input = screen.getByLabelText('ターミナル入力')
+
+      await user.type(input, 'vi docs{Enter}')
+      expect(screen.queryByTestId('vi-editor')).not.toBeInTheDocument()
+      expect(await screen.findByText(/Is a directory/)).toBeInTheDocument()
+    })
+  })
 })

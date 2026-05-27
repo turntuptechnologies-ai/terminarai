@@ -23,6 +23,21 @@ export interface CommandResult {
    * Terminal がこれを見て履歴を空にする。リダイレクト時も保持される。
    */
   clearScreen?: boolean
+  /**
+   * vi コマンドが起動するフルスクリーンエディタを要求するシグナル。
+   * Terminal がこれを見て Terminal 表示の代わりに <ViEditor /> をマウントする。
+   *
+   * 保存時に Terminal が vfs.writeFile + onAfterExecute 再発火を担う。
+   * キャンセル時は Terminal が "Editor cancelled" を履歴に積むだけで onAfterExecute は再発火しない。
+   */
+  editor?: {
+    /** 書き込み先の絶対パス (vfs.resolve 経由で生成) */
+    path: string
+    /** ステータスバー表示用 (学習者が打った相対パス等をそのまま表示) */
+    display: string
+    /** 既存ファイル内容、新規ファイルなら空文字 */
+    initialContent: string
+  }
 }
 
 /**
@@ -62,6 +77,14 @@ export interface Shell {
   commandNames(): string[]
   /** 入力に対する Tab 補完を実行する。 */
   complete(input: string, ctx: CommandContext): CompletionResult
+  /**
+   * 内部 VFS への直接アクセス。
+   *
+   * 通常コマンドは `CommandHandler` の第 3 引数で渡される `vfs` を使うこと。
+   * 本メソッドは Terminal が editor シグナル (`vi` の保存) を受けて VFS に書き込む
+   * ような、シェル外部からの**例外的な永続化経路**のために用意されている。
+   */
+  getVfs(): Vfs
 }
 
 /** 既定の初期コンテキスト。シェル本体ではなく利用側で使う想定。 */
