@@ -20,26 +20,26 @@ describe('PracticeIndexPage', () => {
     window.localStorage.clear()
   })
 
-  it('見出しと問題一覧 (5 問) が表示される', () => {
+  it('見出しと問題一覧 (9 問) が表示される', () => {
     renderPage()
     expect(screen.getByRole('heading', { name: '自習問題' })).toBeInTheDocument()
-    // 5 問分の link が並ぶ
+    // 9 問分の link が並ぶ
     const links = screen.getAllByRole('link')
-    expect(links.length).toBe(5)
+    expect(links.length).toBe(9)
     expect(links[0]).toHaveAttribute('href', '/practice/p1')
-    expect(links[4]).toHaveAttribute('href', '/practice/p5')
+    expect(links[8]).toHaveAttribute('href', '/practice/p9')
   })
 
   it('未挑戦バッジが付く', () => {
     renderPage()
-    expect(screen.getAllByText('未挑戦').length).toBe(5)
+    expect(screen.getAllByText('未挑戦').length).toBe(9)
   })
 
   it('解答済の問題には「解答済」バッジが付く', () => {
     saveProgress('practice', 'p1', { completedSteps: 1, completed: true, updatedAt: 100 })
     renderPage()
     expect(screen.getByText('解答済')).toBeInTheDocument()
-    expect(screen.getAllByText('未挑戦').length).toBe(4)
+    expect(screen.getAllByText('未挑戦').length).toBe(8)
   })
 
   it('難易度バッジが表示される (初級が複数、中級も)', () => {
