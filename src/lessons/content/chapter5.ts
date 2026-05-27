@@ -90,8 +90,7 @@ export const CHAPTER_5: Chapter = {
         '`>` (上書き) と `>>` (追記) の挙動の違いを目で見て確かめます。同じファイルに対して使い分けることで、片方では消え、片方では残ることを確認します。',
       steps: [
         {
-          instruction:
-            '`echo "before" > demo.txt` で `demo.txt` に "before" を書きましょう。',
+          instruction: '`echo "before" > demo.txt` で `demo.txt` に "before" を書きましょう。',
           hints: ['`echo "before" > demo.txt` と入力。`>` は上書きです。'],
           check: { kind: 'file-contains', path: '/home/user/demo.txt', text: 'before' },
         },
