@@ -118,6 +118,19 @@ const SECTIONS: Section[] = [
     ],
   },
   {
+    title: '編集',
+    commands: [
+      {
+        name: 'vi',
+        desc: 'ファイルをエディタで開いて編集 (NORMAL / INSERT / COMMAND の 3 モード)',
+        examples: [
+          { cmd: 'vi note.txt', note: '新規 / 既存どちらでも OK' },
+          { cmd: 'vi /home/user/README.txt', note: '絶対パスでも開ける' },
+        ],
+      },
+    ],
+  },
+  {
     title: 'その他',
     commands: [
       {
@@ -163,6 +176,17 @@ const SHELL_FEATURES: ShellFeature[] = [
     examples: [
       { cmd: '↑ / ↓', note: 'コマンド履歴を遡る / 戻す' },
       { cmd: 'Tab', note: 'コマンド名 / パスを補完' },
+    ],
+  },
+  {
+    title: 'vi の基本操作',
+    examples: [
+      { cmd: 'i', note: 'NORMAL → INSERT (入力開始)' },
+      { cmd: 'Esc', note: 'INSERT → NORMAL' },
+      { cmd: ':w', note: 'NORMAL → COMMAND で保存' },
+      { cmd: ':wq', note: '保存して終了' },
+      { cmd: ':q', note: '終了 (変更がない場合のみ)' },
+      { cmd: ':q!', note: '強制終了 (変更を破棄)' },
     ],
   },
 ]

@@ -169,5 +169,43 @@ export const CHAPTER_5: Chapter = {
         },
       ],
     },
+    {
+      id: '5-5',
+      chapterId: '5',
+      title: 'vi でファイルを編集する',
+      description:
+        'ターミナル文化の定番エディタ **vi** を体験します。3 つのモード (NORMAL / INSERT / COMMAND) を意識しながら、ファイルを開いて編集して保存する流れを覚えましょう。',
+      steps: [
+        {
+          instruction:
+            '`vi greeting.txt` で新しいファイルをエディタで開きましょう。起動直後は **NORMAL モード** です。',
+          hints: [
+            '`vi <ファイル名>` でエディタが開きます。存在しないファイルは新規作成扱いになります。',
+            '`vi greeting.txt` と入力して Enter。エディタ画面に切り替わったら次のステップへ。',
+          ],
+          check: { kind: 'command-name', name: 'vi' },
+        },
+        {
+          instruction:
+            'エディタの中で `i` を押して INSERT モードに入り、`Hello terminarai` と書きましょう。書けたら `Esc` で NORMAL に戻り、`:wq` Enter で保存して終了します。',
+          hints: [
+            'NORMAL で `i` → 下に "-- INSERT --" が出ます。これがタイプできる状態です。',
+            '入力後 `Esc` で NORMAL、`:` で COMMAND モードに入って `wq` Enter で保存+終了。',
+            '途中で間違えたら `:q!` Enter で破棄して抜け、もう一度 `vi greeting.txt` から。',
+          ],
+          check: {
+            kind: 'and',
+            checks: [
+              { kind: 'file-exists', path: '/home/user/greeting.txt' },
+              {
+                kind: 'file-contains',
+                path: '/home/user/greeting.txt',
+                text: 'Hello terminarai',
+              },
+            ],
+          },
+        },
+      ],
+    },
   ],
 }

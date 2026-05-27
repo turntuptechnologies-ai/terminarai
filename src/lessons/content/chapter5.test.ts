@@ -20,9 +20,9 @@ const getLessonOrThrow = (id: string) => {
 }
 
 describe('CHAPTER_5 構造', () => {
-  it('4 レッスン構成', () => {
+  it('5 レッスン構成', () => {
     expect(CHAPTER_5.id).toBe('5')
-    expect(CHAPTER_5.lessons.map((l) => l.id)).toEqual(['5-1', '5-2', '5-3', '5-4'])
+    expect(CHAPTER_5.lessons.map((l) => l.id)).toEqual(['5-1', '5-2', '5-3', '5-4', '5-5'])
   })
 
   it('全レッスンの chapterId が "5"', () => {
@@ -119,5 +119,39 @@ describe('CHAPTER_5 各レッスンの check が期待コマンドで通る', ()
         ctxFor({ vfs, lastCommand: 'echo "2行目" >> memo.txt' }),
       ),
     ).toBe(true)
+  })
+
+  it('5-5 step1: vi 起動 (command-name) でクリア', () => {
+    const lesson = getLessonOrThrow('5-5')
+    expect(evaluateCheck(lesson.steps[0].check, ctxFor({ lastCommand: 'vi greeting.txt' }))).toBe(
+      true,
+    )
+  })
+
+  it('5-5 step1: 別コマンドではクリアしない', () => {
+    const lesson = getLessonOrThrow('5-5')
+    expect(
+      evaluateCheck(lesson.steps[0].check, ctxFor({ lastCommand: 'touch greeting.txt' })),
+    ).toBe(false)
+  })
+
+  it('5-5 step2: Hello terminarai と書かれた greeting.txt があればクリア', () => {
+    const lesson = getLessonOrThrow('5-5')
+    const vfs = createDefaultVfs()
+    vfs.writeFile('/home/user/greeting.txt', 'Hello terminarai')
+    expect(evaluateCheck(lesson.steps[1].check, ctxFor({ vfs }))).toBe(true)
+  })
+
+  it('5-5 step2: 文言が違うとクリアしない (指定テキストを担保)', () => {
+    const lesson = getLessonOrThrow('5-5')
+    const vfs = createDefaultVfs()
+    vfs.writeFile('/home/user/greeting.txt', 'こんにちは')
+    expect(evaluateCheck(lesson.steps[1].check, ctxFor({ vfs }))).toBe(false)
+  })
+
+  it('5-5 step2: ファイルが無いとクリアしない', () => {
+    const lesson = getLessonOrThrow('5-5')
+    const vfs = createDefaultVfs()
+    expect(evaluateCheck(lesson.steps[1].check, ctxFor({ vfs }))).toBe(false)
   })
 })
