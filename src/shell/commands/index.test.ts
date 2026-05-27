@@ -14,6 +14,7 @@ describe('registerAllCommands', () => {
       'cd',
       'cp',
       'echo',
+      'grep',
       'head',
       'ls',
       'mkdir',

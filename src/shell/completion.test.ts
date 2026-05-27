@@ -7,6 +7,7 @@ const REGISTERED = [
   'cd',
   'cp',
   'echo',
+  'grep',
   'head',
   'ls',
   'mkdir',
