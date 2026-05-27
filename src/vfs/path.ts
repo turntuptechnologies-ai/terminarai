@@ -8,9 +8,15 @@ import { HOME_PATH } from './types'
  * - `~` / `~/...` は HOME_PATH に展開
  * - `.` / `..` / 連続スラッシュ / 末尾スラッシュを正規化
  * - 結果は常に `/` で始まる絶対パス（ルートは `/`）
+ *
+ * 引数の想定:
+ * - **cwd は絶対パス**を期待。空文字 / 空白等は内部で '/' にフォールバック
+ *   (型上は string なので undefined は来ないが、空文字経路は許容)
+ * - **path === '' は cwd の正規化を返す** (シェルの `cd ""` 相当)
+ * - `..` がルートを超える場合 (`/foo/../../..`) は `/` で打ち止め (Unix 互換)
  */
 export function resolve(cwd: string, path: string): string {
-  if (path === '' || path === undefined) {
+  if (path === '') {
     return normalize(cwd || '/')
   }
 

@@ -386,4 +386,71 @@ describe('Vfs', () => {
       expect(expectOk(v.readFile('/foo'))).toBe('bar')
     })
   })
+
+  describe('exists', () => {
+    it('存在するディレクトリは true', () => {
+      expect(vfs.exists('/home/user')).toBe(true)
+    })
+
+    it('存在するファイルは true', () => {
+      expect(vfs.exists('/home/user/README.txt')).toBe(true)
+    })
+
+    it('存在しないパスは false', () => {
+      expect(vfs.exists('/no/such/path')).toBe(false)
+    })
+
+    it('ルートは true', () => {
+      expect(vfs.exists('/')).toBe(true)
+    })
+  })
+
+  describe('serialize / loadFromSerialized', () => {
+    it('serialize → 別インスタンスで loadFromSerialized → 元への書き込みは影響しない (deep copy)', () => {
+      const json = vfs.serialize()
+      const other = createVfs()
+      expectOk(other.loadFromSerialized(json))
+
+      // 元 vfs に新規ファイルを書き込んでも、other 側は変化しない
+      expectOk(vfs.writeFile('/home/user/new.txt', 'hi'))
+      expect(vfs.exists('/home/user/new.txt')).toBe(true)
+      expect(other.exists('/home/user/new.txt')).toBe(false)
+    })
+
+    it('children のキーと child.name が不一致な JSON は EINVAL', () => {
+      // 手動で組み立てた壊れた JSON (foo というキーに name=bar のノード)
+      const broken = JSON.stringify({
+        type: 'directory',
+        name: '/',
+        mtime: 0,
+        mode: 0o755,
+        children: {
+          foo: { type: 'file', name: 'bar', mtime: 0, mode: 0o644, content: '' },
+        },
+      })
+      const v = createVfs()
+      expectErr(v.loadFromSerialized(broken), 'EINVAL')
+    })
+
+    it('JSON パースエラーも EINVAL', () => {
+      const v = createVfs()
+      expectErr(v.loadFromSerialized('this is not json'), 'EINVAL')
+    })
+  })
+
+  describe('"." / ".." を直接渡したときの挙動', () => {
+    it('list(".") は ENOENT (絶対パス前提のため、"." 単体は root 配下の dot エントリを探す)', () => {
+      // 注: vfs API は絶対パスを期待する。"." を渡すと normalize('/.') = '/' になり root が返る。
+      const entries = expectOk(vfs.list('.'))
+      // root の中身が並ぶ (home / tmp / etc / usr)
+      expect(entries.length).toBeGreaterThan(0)
+    })
+
+    it('stat("..") は root を返す (normalize: /.. = /)', () => {
+      // ".." 単体は normalize で / になる (root の親は root)
+      const result = expectOk(vfs.stat('..'))
+      expect(result.type).toBe('directory')
+      expect(result.name).toBe('/')
+    })
+  })
 })

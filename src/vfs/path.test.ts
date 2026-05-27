@@ -118,3 +118,37 @@ describe('splitPath', () => {
     expect(splitPath('/a/b/c')).toEqual(['a', 'b', 'c'])
   })
 })
+
+describe('resolve edge cases (#9 追加分)', () => {
+  it('ルート超え + 深い .. は / で打ち止め', () => {
+    expect(resolve('/home/user', '../../../../etc')).toBe('/etc')
+  })
+
+  it('path === "" は cwd の正規化を返す', () => {
+    expect(resolve('/home/user', '')).toBe('/home/user')
+  })
+
+  it('path === "" + cwd 末尾スラッシュも正規化', () => {
+    expect(resolve('/home/user/', '')).toBe('/home/user')
+  })
+
+  it('cwd 空文字は / 扱い', () => {
+    expect(resolve('', 'docs')).toBe('/docs')
+  })
+
+  it('"." を直接 path に → cwd と同じ', () => {
+    expect(resolve('/home/user', '.')).toBe('/home/user')
+  })
+
+  it('".." を直接 path に → cwd の親', () => {
+    expect(resolve('/home/user', '..')).toBe('/home')
+  })
+
+  it('連続 .. は段数分だけ上がる', () => {
+    expect(resolve('/a/b/c/d', '../../foo')).toBe('/a/b/foo')
+  })
+
+  it('絶対パス末尾の / は除去される', () => {
+    expect(resolve('/x', '/a/b/')).toBe('/a/b')
+  })
+})
