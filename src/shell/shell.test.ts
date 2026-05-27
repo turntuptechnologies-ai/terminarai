@@ -217,4 +217,99 @@ describe('Shell', () => {
     expect(result.exitCode).toBe(2)
     expect(result.stderr).toContain('not supported')
   })
+
+  describe('学習者が試しそうな入力の挙動ロック (#11)', () => {
+    it('大文字コマンド LS / Ls は command not found (case-sensitive)', () => {
+      const ls: CommandHandler = () => ({ stdout: '', stderr: '', exitCode: 0 })
+      shell.register('ls', ls)
+      // 小文字 ls は通る
+      expect(shell.execute('ls', defaultContext()).result.exitCode).toBe(0)
+      // 大文字混合は別物
+      expect(shell.execute('LS', defaultContext()).result.stderr).toContain('command not found')
+      expect(shell.execute('Ls', defaultContext()).result.stderr).toContain('command not found')
+    })
+
+    it('相対実行 ./script は command not found (パス実行は未サポート)', () => {
+      const { result } = shell.execute('./script', defaultContext())
+      expect(result.exitCode).toBe(127)
+      expect(result.stderr).toContain('command not found')
+    })
+
+    it('絶対パス /bin/pwd も command not found (パス実行は未サポート)', () => {
+      const { result } = shell.execute('/bin/pwd', defaultContext())
+      expect(result.exitCode).toBe(127)
+      expect(result.stderr).toContain('command not found')
+    })
+
+    it('> 直前直後に空白なしの混在: echo hi>out hello', () => {
+      const echo: CommandHandler = (args) => ({
+        stdout: `${args.join(' ')}\n`,
+        stderr: '',
+        exitCode: 0,
+      })
+      shell.register('echo', echo)
+      const { result } = shell.execute('echo hi>out hello', defaultContext())
+      expect(result.exitCode).toBe(0)
+      expect(vfs.readFile('/home/user/out').ok && vfs.readFile('/home/user/out')).toMatchObject({
+        ok: true,
+        value: 'hi hello\n',
+      })
+    })
+
+    it('cwd=/ のとき相対 redirect は / 配下に書く', () => {
+      const echo: CommandHandler = () => ({ stdout: 'hello\n', stderr: '', exitCode: 0 })
+      shell.register('echo', echo)
+      const { result } = shell.execute('echo hello > out.txt', defaultContext('/'))
+      expect(result.exitCode).toBe(0)
+      const read = vfs.readFile('/out.txt')
+      expect(read.ok && read.value).toBe('hello\n')
+    })
+
+    it('redirect target に ~ を使うと HOME に展開される', () => {
+      const echo: CommandHandler = () => ({ stdout: 'hi\n', stderr: '', exitCode: 0 })
+      shell.register('echo', echo)
+      const { result } = shell.execute('echo hi > ~/written.txt', defaultContext('/tmp'))
+      expect(result.exitCode).toBe(0)
+      const read = vfs.readFile('/home/user/written.txt')
+      expect(read.ok && read.value).toBe('hi\n')
+    })
+  })
+
+  describe('handler が cwdAfter を返したときの挙動ロック (#11)', () => {
+    it('絶対パス cwdAfter は次の ctx.cwd になる (期待挙動)', () => {
+      const cdLike: CommandHandler = () => ({
+        stdout: '',
+        stderr: '',
+        exitCode: 0,
+        cwdAfter: '/tmp',
+      })
+      shell.register('cdlike', cdLike)
+      const { nextCwd, nextCtx } = shell.execute('cdlike', defaultContext('/home/user'))
+      expect(nextCwd).toBe('/tmp')
+      expect(nextCtx.cwd).toBe('/tmp')
+      expect(nextCtx.env.PWD).toBe('/tmp')
+      expect(nextCtx.env.OLDPWD).toBe('/home/user')
+    })
+
+    it('相対パス cwdAfter は **そのまま** 使われる (handler は絶対パスを返す責任を持つ)', () => {
+      // 仕様: shell は handler の cwdAfter を信用し normalize しない。
+      // handler 側で vfs.resolve 経由の絶対パスを返すことが暗黙の契約。
+      const buggy: CommandHandler = () => ({
+        stdout: '',
+        stderr: '',
+        exitCode: 0,
+        cwdAfter: 'relative',
+      })
+      shell.register('buggy', buggy)
+      const { nextCwd } = shell.execute('buggy', defaultContext('/home/user'))
+      expect(nextCwd).toBe('relative')
+    })
+
+    it('cwdAfter 省略時は ctx.cwd が維持される', () => {
+      const noChange: CommandHandler = () => ({ stdout: '', stderr: '', exitCode: 0 })
+      shell.register('nc', noChange)
+      const { nextCwd } = shell.execute('nc', defaultContext('/etc'))
+      expect(nextCwd).toBe('/etc')
+    })
+  })
 })

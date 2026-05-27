@@ -82,4 +82,43 @@ describe('parse', () => {
     expect(r.ok).toBe(false)
     if (!r.ok) expect(r.error.message).toContain('multiple stdout redirections')
   })
+
+  describe('redirect の位置自由度 (#11)', () => {
+    it('先頭リダイレクト: > out echo hi', () => {
+      const r = parse(tokens('> out echo hi'))
+      if (!r.ok || !r.command) throw new Error('expected ok')
+      expect(r.command.argv).toEqual(['echo', 'hi'])
+      expect(r.command.stdoutRedirect).toEqual({ target: 'out', append: false })
+    })
+
+    it('中間リダイレクト: echo > out hi', () => {
+      const r = parse(tokens('echo > out hi'))
+      if (!r.ok || !r.command) throw new Error('expected ok')
+      expect(r.command.argv).toEqual(['echo', 'hi'])
+      expect(r.command.stdoutRedirect).toEqual({ target: 'out', append: false })
+    })
+
+    it('末尾リダイレクト: echo hi > out (慣用)', () => {
+      const r = parse(tokens('echo hi > out'))
+      if (!r.ok || !r.command) throw new Error('expected ok')
+      expect(r.command.argv).toEqual(['echo', 'hi'])
+      expect(r.command.stdoutRedirect).toEqual({ target: 'out', append: false })
+    })
+  })
+
+  describe('>>> (= >> >) の挙動ロック (#11)', () => {
+    it('>>> alone は syntax error (target が無い)', () => {
+      // tokenize は greedy で先頭 2 文字を >> にして残り > を取り出す → [>>, >]
+      // parse は >> の target に > を期待するが word でないため error
+      const r = parse(tokens('>>>'))
+      expect(r.ok).toBe(false)
+      if (!r.ok) expect(r.error.message).toMatch(/syntax error/)
+    })
+
+    it('>>> file は syntax error (>> の target が word でなく > になる)', () => {
+      const r = parse(tokens('>>> file'))
+      expect(r.ok).toBe(false)
+      if (!r.ok) expect(r.error.message).toMatch(/syntax error/)
+    })
+  })
 })
