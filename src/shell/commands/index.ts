@@ -4,6 +4,7 @@ import { cd } from './cd'
 import { clear } from './clear'
 import { cp } from './cp'
 import { echo } from './echo'
+import { grep } from './grep'
 import { head } from './head'
 import { ls } from './ls'
 import { mkdir } from './mkdir'
@@ -20,6 +21,7 @@ export { cd } from './cd'
 export { clear } from './clear'
 export { cp } from './cp'
 export { echo } from './echo'
+export { grep } from './grep'
 export { head } from './head'
 export { ls } from './ls'
 export { mkdir } from './mkdir'
@@ -37,6 +39,7 @@ export function registerAllCommands(shell: Shell): void {
   shell.register('clear', clear)
   shell.register('cp', cp)
   shell.register('echo', echo)
+  shell.register('grep', grep)
   shell.register('head', head)
   shell.register('ls', ls)
   shell.register('mkdir', mkdir)

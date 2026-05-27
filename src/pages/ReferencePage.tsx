@@ -88,6 +88,18 @@ const SECTIONS: Section[] = [
           { cmd: 'tail -5 log.txt', note: 'GNU 短縮' },
         ],
       },
+      {
+        name: 'grep',
+        desc: 'パターン (正規表現) を含む行をファイルから抽出',
+        examples: [
+          { cmd: 'grep ERROR access.log', note: '単純文字列' },
+          { cmd: 'grep -i error access.log', note: '大小区別なし' },
+          { cmd: 'grep -n INFO access.log', note: '行番号付き' },
+          { cmd: 'grep -v INFO access.log', note: '一致しない行' },
+          { cmd: 'grep -in error access.log', note: 'フラグ結合 OK' },
+          { cmd: 'grep "^WARN" log.txt', note: '正規表現 (^, $, [...] 等)' },
+        ],
+      },
     ],
   },
   {
@@ -216,7 +228,7 @@ const UNSUPPORTED = [
   '環境変数 ($VAR), コマンド置換 ($(cmd)), バッククォート (`...`)',
   '入力リダイレクト (<)',
   'バックグラウンド実行 (&)',
-  'find / grep / wc / chmod などのコマンド',
+  'find / wc / chmod などのコマンド',
   '~user (他ユーザのホーム展開)',
 ]
 

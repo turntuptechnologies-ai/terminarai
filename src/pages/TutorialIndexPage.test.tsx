@@ -44,9 +44,9 @@ describe('TutorialIndexPage', () => {
 
   it('未着手の章は「未着手 (0 / N)」バッジ', () => {
     renderPage()
-    // 5 レッスン構成の章 (1, 2, 3, 5) は 4 つ。4 レッスン構成の章 (4, 6) は 2 つ
+    // 5 レッスン構成の章 (1, 2, 3, 5) は 4 つ。4 レッスン構成の章 (4, 6, 7) は 3 つ
     expect(screen.getAllByText(/未着手 \(0 \/ 5\)/).length).toBe(4)
-    expect(screen.getAllByText(/未着手 \(0 \/ 4\)/).length).toBe(2)
+    expect(screen.getAllByText(/未着手 \(0 \/ 4\)/).length).toBe(3)
   })
 
   it('一部進行中なら「進行中 (X / N)」バッジ', () => {
