@@ -7,6 +7,15 @@ export type Check =
   /** 入力文字列 (引数込み) に対する正規表現マッチ。`pattern` は RegExp ソース。 */
   | { kind: 'command-matches'; pattern: string; flags?: string }
   /**
+   * 直近コマンドの**コマンド名**だけを比較する。
+   * `tokenize + parse` で得た `argv[0]` の basename (`/bin/pwd` → `pwd`, `./script` → `script`)
+   * と `name` を === で比較する。
+   *
+   * 引数や redirect には触れないので、「pwd を打った」レベルの粒度で十分なときに使う。
+   * 引数まで縛りたい場合は `command-matches` を選ぶ。
+   */
+  | { kind: 'command-name'; name: string }
+  /**
    * 子チェックの論理 AND。
    * 安全のため空配列は false 扱い (レッスン作者の意図しないクリアを防ぐ)。
    */

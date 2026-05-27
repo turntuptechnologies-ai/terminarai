@@ -204,4 +204,62 @@ describe('evaluateCheck', () => {
       expect(evaluateCheck(check, ctx())).toBe(true)
     })
   })
+
+  describe('command-name', () => {
+    it('そのままの名前 pwd でクリア', () => {
+      const check: Check = { kind: 'command-name', name: 'pwd' }
+      expect(evaluateCheck(check, ctx({ lastCommand: 'pwd' }))).toBe(true)
+    })
+
+    it('引数があってもコマンド名だけで判定', () => {
+      const check: Check = { kind: 'command-name', name: 'ls' }
+      expect(evaluateCheck(check, ctx({ lastCommand: 'ls -la /home' }))).toBe(true)
+    })
+
+    it('絶対パスのフルパス /bin/pwd は basename で pwd 扱い', () => {
+      const check: Check = { kind: 'command-name', name: 'pwd' }
+      expect(evaluateCheck(check, ctx({ lastCommand: '/bin/pwd' }))).toBe(true)
+    })
+
+    it('相対パス ./script は basename で script 扱い', () => {
+      const check: Check = { kind: 'command-name', name: 'script' }
+      expect(evaluateCheck(check, ctx({ lastCommand: './script arg1' }))).toBe(true)
+    })
+
+    it('別のコマンドは false', () => {
+      const check: Check = { kind: 'command-name', name: 'pwd' }
+      expect(evaluateCheck(check, ctx({ lastCommand: 'ls' }))).toBe(false)
+    })
+
+    it('case-sensitive (LS は ls と一致しない)', () => {
+      const check: Check = { kind: 'command-name', name: 'ls' }
+      expect(evaluateCheck(check, ctx({ lastCommand: 'LS' }))).toBe(false)
+    })
+
+    it('空入力は false', () => {
+      const check: Check = { kind: 'command-name', name: 'pwd' }
+      expect(evaluateCheck(check, ctx({ lastCommand: '' }))).toBe(false)
+    })
+
+    it('tokenize エラー (未対応メタ) は false', () => {
+      const check: Check = { kind: 'command-name', name: 'cat' }
+      expect(evaluateCheck(check, ctx({ lastCommand: 'cat foo | grep x' }))).toBe(false)
+    })
+
+    it('redirect 先頭でもコマンド名で判定 (> out echo hi → echo)', () => {
+      const check: Check = { kind: 'command-name', name: 'echo' }
+      expect(evaluateCheck(check, ctx({ lastCommand: '> out echo hi' }))).toBe(true)
+    })
+
+    it('not / and / or との組み合わせ', () => {
+      const check: Check = {
+        kind: 'and',
+        checks: [
+          { kind: 'command-name', name: 'pwd' },
+          { kind: 'not', check: { kind: 'cwd-equals', path: '/tmp' } },
+        ],
+      }
+      expect(evaluateCheck(check, ctx({ cwd: '/home/user', lastCommand: 'pwd' }))).toBe(true)
+    })
+  })
 })

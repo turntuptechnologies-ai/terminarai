@@ -1,3 +1,4 @@
+import { parse, tokenize } from '../shell'
 import type { Check, EvalContext } from './types'
 
 /**
@@ -7,7 +8,10 @@ import type { Check, EvalContext } from './types'
  * - `file-exists`: 指定パスが VFS 上に存在するか
  * - `file-contains`: 指定ファイルが特定文字列を含むか (ディレクトリ・不在は false)
  * - `command-matches`: 直近のコマンド入力が正規表現にマッチするか (不正パターンは false)
+ * - `command-name`: 直近コマンドの argv[0] basename が name と一致するか
+ *   (`/bin/pwd` `./pwd` でも pwd 扱い。引数 / redirect は無視)
  * - `and` / `or`: 子チェックの論理結合。**空配列は false に統一** (作者の意図しないクリア防止)
+ * - `not`: 子チェックの否定
  */
 export function evaluateCheck(check: Check, ctx: EvalContext): boolean {
   switch (check.kind) {
@@ -37,6 +41,18 @@ export function evaluateCheck(check: Check, ctx: EvalContext): boolean {
         return false
       }
       return re.test(ctx.lastCommand)
+    }
+
+    case 'command-name': {
+      const tokens = tokenize(ctx.lastCommand)
+      if (!tokens.ok) return false
+      const parsed = parse(tokens.tokens)
+      if (!parsed.ok || !parsed.command || parsed.command.argv.length === 0) return false
+      const argv0 = parsed.command.argv[0]
+      // basename: 最後の / の後ろ。`/bin/pwd` → `pwd`、`./pwd` → `pwd`、`pwd` → `pwd`
+      const slash = argv0.lastIndexOf('/')
+      const base = slash === -1 ? argv0 : argv0.slice(slash + 1)
+      return base === check.name
     }
 
     case 'and':
