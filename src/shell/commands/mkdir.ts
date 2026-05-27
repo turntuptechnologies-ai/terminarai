@@ -1,17 +1,21 @@
 import type { CommandHandler } from '../types'
-import { invalidOptionError, parseShortFlags } from './parse-args'
+import { invalidOptionError, parseArgs } from './parse-args'
 
 /**
  * mkdir — ディレクトリを作成する。
  *
- * - `-p` で親ディレクトリも含めて再帰作成、既存でもエラーにしない
+ * - `-p` / `--parents` で親ディレクトリも含めて再帰作成、既存でもエラーにしない
  * - 複数ターゲット指定可
  */
 export const mkdir: CommandHandler = (args, ctx, vfs) => {
-  const parsed = parseShortFlags(args, 'p')
+  const parsed = parseArgs(args, { short: 'p', longAliases: { parents: 'p' } })
   if (!parsed.ok) {
     // GNU mkdir は parse error も missing operand も exit 1 で揃える (ls の exit 2 とは異なる)
-    return { stdout: '', stderr: invalidOptionError('mkdir', parsed.invalidFlag), exitCode: 1 }
+    return {
+      stdout: '',
+      stderr: invalidOptionError('mkdir', parsed.invalidFlag, parsed.isLong),
+      exitCode: 1,
+    }
   }
   const recursive = parsed.flags.has('p')
   const targets = parsed.positional

@@ -1,5 +1,5 @@
 import type { CommandHandler } from '../types'
-import { invalidOptionError, parseShortFlags } from './parse-args'
+import { invalidOptionError, parseArgs } from './parse-args'
 
 function lowerFirst(s: string): string {
   return s.charAt(0).toLowerCase() + s.slice(1)
@@ -8,7 +8,7 @@ function lowerFirst(s: string): string {
 /**
  * cp — ファイル / ディレクトリをコピーする。
  *
- * - `-r` / `-R` で再帰コピー (ディレクトリには必須)
+ * - `-r` / `-R` / `--recursive` で再帰コピー (ディレクトリには必須)
  * - 形式: `cp SOURCE... DEST`
  *   - SOURCE が複数なら DEST は既存ディレクトリでなければならない
  *   - SOURCE がディレクトリで `-r` がないと "omitting directory" エラー
@@ -19,9 +19,13 @@ function lowerFirst(s: string): string {
  * GNU `cp -r` は子ファイルをマージする挙動なのでここで乖離する。Issue #9 で追跡。
  */
 export const cp: CommandHandler = (args, ctx, vfs) => {
-  const parsed = parseShortFlags(args, 'rR')
+  const parsed = parseArgs(args, { short: 'rR', longAliases: { recursive: 'r' } })
   if (!parsed.ok) {
-    return { stdout: '', stderr: invalidOptionError('cp', parsed.invalidFlag), exitCode: 1 }
+    return {
+      stdout: '',
+      stderr: invalidOptionError('cp', parsed.invalidFlag, parsed.isLong),
+      exitCode: 1,
+    }
   }
   const recursive = parsed.flags.has('r') || parsed.flags.has('R')
   const operands = parsed.positional
