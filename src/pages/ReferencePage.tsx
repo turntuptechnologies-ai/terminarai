@@ -69,6 +69,25 @@ const SECTIONS: Section[] = [
           { cmd: 'echo "hello world"', note: 'クォートで空白込み' },
         ],
       },
+      {
+        name: 'head',
+        desc: 'ファイルの先頭 N 行を表示 (既定 10 行)',
+        examples: [
+          { cmd: 'head log.txt', note: '先頭 10 行' },
+          { cmd: 'head -n 5 log.txt', note: '行数指定 (空白あり)' },
+          { cmd: 'head -5 log.txt', note: '行数指定 (GNU 短縮)' },
+          { cmd: 'head --lines=5 log.txt', note: 'long 形' },
+        ],
+      },
+      {
+        name: 'tail',
+        desc: 'ファイルの末尾 N 行を表示 (既定 10 行)',
+        examples: [
+          { cmd: 'tail log.txt', note: '末尾 10 行' },
+          { cmd: 'tail -n 5 log.txt', note: '行数指定' },
+          { cmd: 'tail -5 log.txt', note: 'GNU 短縮' },
+        ],
+      },
     ],
   },
   {
@@ -197,7 +216,7 @@ const UNSUPPORTED = [
   '環境変数 ($VAR), コマンド置換 ($(cmd)), バッククォート (`...`)',
   '入力リダイレクト (<)',
   'バックグラウンド実行 (&)',
-  'find / grep / wc / chmod / head / tail などのコマンド',
+  'find / grep / wc / chmod などのコマンド',
   '~user (他ユーザのホーム展開)',
 ]
 
