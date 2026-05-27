@@ -2,11 +2,12 @@ import { describe, expect, it } from 'vitest'
 import { CHAPTERS, findChapter, findLesson, findNextLesson } from './registry'
 
 describe('registry', () => {
-  it('CHAPTERS に第1章 / 第2章 / 第3章が登録されている', () => {
-    expect(CHAPTERS.length).toBeGreaterThanOrEqual(3)
+  it('CHAPTERS に第1〜4章が登録されている', () => {
+    expect(CHAPTERS.length).toBeGreaterThanOrEqual(4)
     expect(CHAPTERS.map((c) => c.id)).toContain('1')
     expect(CHAPTERS.map((c) => c.id)).toContain('2')
     expect(CHAPTERS.map((c) => c.id)).toContain('3')
+    expect(CHAPTERS.map((c) => c.id)).toContain('4')
   })
 
   it('findChapter で第1章を取得できる', () => {
@@ -19,6 +20,10 @@ describe('registry', () => {
 
   it('findChapter で第3章を取得できる', () => {
     expect(findChapter('3')?.title).toBe('ファイルとディレクトリを管理する')
+  })
+
+  it('findChapter で第4章を取得できる', () => {
+    expect(findChapter('4')?.title).toBe('パスの世界を歩く')
   })
 
   it('findLesson でレッスン 1-1 を取得できる', () => {
@@ -48,10 +53,14 @@ describe('registry', () => {
       const next = findNextLesson('1', '1-5')
       expect(next?.id).toBe('2-1')
       expect(next?.chapterId).toBe('2')
-      // 2-5 → 3-1 も同様
+      // 2-5 → 3-1
       const next2 = findNextLesson('2', '2-5')
       expect(next2?.id).toBe('3-1')
       expect(next2?.chapterId).toBe('3')
+      // 3-5 → 4-1 (第4章 追加分)
+      const next3 = findNextLesson('3', '3-5')
+      expect(next3?.id).toBe('4-1')
+      expect(next3?.chapterId).toBe('4')
     })
 
     it('全章の最後なら undefined', () => {
