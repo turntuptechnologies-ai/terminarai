@@ -1,15 +1,16 @@
 import { NavLink, Outlet } from 'react-router-dom'
+import { PATHS } from '../routes'
 
 const NAV_ITEMS = [
-  { to: '/', label: 'ホーム', end: true },
-  { to: '/tutorial', label: 'チュートリアル', end: false },
-  { to: '/practice', label: '自習問題', end: false },
-  { to: '/sandbox', label: 'サンドボックス', end: false },
-  { to: '/reference', label: 'リファレンス', end: false },
+  { to: PATHS.home, label: 'ホーム', end: true },
+  { to: PATHS.tutorial, label: 'チュートリアル', end: false },
+  { to: PATHS.practice, label: '自習問題', end: false },
+  { to: PATHS.sandbox, label: 'サンドボックス', end: false },
+  { to: PATHS.reference, label: 'リファレンス', end: false },
 ] as const
 
 function navClass({ isActive }: { isActive: boolean }): string {
-  const base = 'rounded px-3 py-1.5 text-sm transition-colors'
+  const base = 'rounded px-3 py-1.5 text-sm transition-colors whitespace-nowrap'
   return isActive
     ? `${base} bg-zinc-800 text-emerald-400`
     : `${base} text-zinc-300 hover:bg-zinc-800/60 hover:text-zinc-100`
@@ -30,7 +31,15 @@ export function Layout() {
             <p className="font-mono font-semibold text-lg text-zinc-100">terminarai</p>
             <p className="text-xs text-zinc-500">Linux CLI 見習い道場</p>
           </div>
-          <nav aria-label="主要ナビゲーション" className="flex flex-wrap gap-1">
+          {/*
+            320px 級ではナビが折り返されると視覚的にうるさいので、横スクロールで対応する。
+            ナビ自身は単一行を維持し (whitespace-nowrap)、はみ出した分は touch スクロール。
+            sm 以上では通常通り並ぶ。
+          */}
+          <nav
+            aria-label="主要ナビゲーション"
+            className="-mx-2 flex gap-1 overflow-x-auto px-2 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0"
+          >
             {NAV_ITEMS.map((item) => (
               <NavLink key={item.to} to={item.to} end={item.end} className={navClass}>
                 {item.label}

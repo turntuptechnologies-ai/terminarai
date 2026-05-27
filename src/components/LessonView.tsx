@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { evaluateCheck, findNextLesson, type Lesson, loadProgress, saveProgress } from '../lessons'
+import { PATHS, toChapter, toLesson } from '../routes'
 import { type CommandContext, type CommandResult, createShell, defaultContext } from '../shell'
 import { registerAllCommands } from '../shell/commands'
 import { createDefaultVfs, createVfs, HOME_PATH, type Vfs } from '../vfs'
@@ -98,7 +99,7 @@ export function LessonView({ lesson, onComplete }: LessonViewProps) {
         {/* パンくず: いつでも章一覧に戻れるように */}
         <nav aria-label="現在地" className="text-xs">
           <Link
-            to={`/tutorial/${lesson.chapterId}`}
+            to={toChapter(lesson.chapterId)}
             className="text-zinc-500 transition-colors hover:text-zinc-300"
           >
             第 {lesson.chapterId} 章
@@ -122,21 +123,21 @@ export function LessonView({ lesson, onComplete }: LessonViewProps) {
             </div>
             <div className="mt-3 flex flex-wrap gap-2 text-sm">
               <Link
-                to={`/tutorial/${lesson.chapterId}`}
+                to={toChapter(lesson.chapterId)}
                 className="rounded border border-zinc-700 px-3 py-1.5 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-100"
               >
                 ← 章一覧へ戻る
               </Link>
               {nextLesson ? (
                 <Link
-                  to={`/tutorial/${nextLesson.chapterId}/${nextLesson.id}`}
+                  to={toLesson(nextLesson.chapterId, nextLesson.id)}
                   className="rounded border border-emerald-600 bg-emerald-700/20 px-3 py-1.5 text-emerald-300 transition-colors hover:border-emerald-400 hover:bg-emerald-700/40"
                 >
                   次のレッスンへ →
                 </Link>
               ) : (
                 <Link
-                  to="/tutorial"
+                  to={PATHS.tutorial}
                   className="rounded border border-zinc-700 px-3 py-1.5 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-100"
                 >
                   全章一覧へ

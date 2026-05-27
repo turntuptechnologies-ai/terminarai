@@ -1,3 +1,5 @@
+import { PageShell } from '../components/PageShell'
+
 interface Example {
   cmd: string
   note?: string
@@ -204,61 +206,59 @@ function CommandCard({ entry }: { entry: CommandEntry }) {
 
 export function ReferencePage() {
   return (
-    <div className="overflow-y-auto px-6 py-10 text-zinc-100">
-      <div className="mx-auto max-w-3xl">
-        <h1 className="font-semibold text-2xl">クイックリファレンス</h1>
-        <p className="mt-3 text-zinc-400 leading-relaxed">
-          terminarai で使えるコマンドと、シェルの基本的な機能の早見表です。
-          チュートリアル中に「これどう書くんだっけ」と思ったらここを開いてください。
-        </p>
+    <PageShell>
+      <h1 className="font-semibold text-2xl">クイックリファレンス</h1>
+      <p className="mt-3 text-zinc-400 leading-relaxed">
+        terminarai で使えるコマンドと、シェルの基本的な機能の早見表です。
+        チュートリアル中に「これどう書くんだっけ」と思ったらここを開いてください。
+      </p>
 
-        {SECTIONS.map((section) => (
-          <section key={section.title} className="mt-8">
-            <h2 className="border-zinc-800 border-b pb-2 font-semibold text-lg text-zinc-200">
-              {section.title}
-            </h2>
-            <div className="mt-3 space-y-3">
-              {section.commands.map((cmd) => (
-                <CommandCard key={cmd.name} entry={cmd} />
-              ))}
-            </div>
-          </section>
-        ))}
-
-        <section className="mt-10">
+      {SECTIONS.map((section) => (
+        <section key={section.title} className="mt-8">
           <h2 className="border-zinc-800 border-b pb-2 font-semibold text-lg text-zinc-200">
-            シェルの機能
+            {section.title}
           </h2>
           <div className="mt-3 space-y-3">
-            {SHELL_FEATURES.map((feat) => (
-              <div key={feat.title} className="rounded-md border border-zinc-800 p-4">
-                <p className="font-semibold text-sky-400 text-sm">{feat.title}</p>
-                <ul className="mt-3 space-y-1.5">
-                  {feat.examples.map((ex) => (
-                    <ExampleRow key={ex.cmd} ex={ex} />
-                  ))}
-                </ul>
-              </div>
+            {section.commands.map((cmd) => (
+              <CommandCard key={cmd.name} entry={cmd} />
             ))}
           </div>
         </section>
+      ))}
 
-        <section className="mt-10">
-          <h2 className="border-zinc-800 border-b pb-2 font-semibold text-lg text-zinc-200">
-            未対応の機能
-          </h2>
-          <p className="mt-3 text-sm text-zinc-500">
-            以下は本物の Linux にはあるが、terminarai では未実装です (将来追加予定)。
-          </p>
-          <ul className="mt-3 space-y-1 text-sm text-zinc-400">
-            {UNSUPPORTED.map((item) => (
-              <li key={item}>
-                <span className="text-zinc-600">·</span> {item}
-              </li>
-            ))}
-          </ul>
-        </section>
-      </div>
-    </div>
+      <section className="mt-10">
+        <h2 className="border-zinc-800 border-b pb-2 font-semibold text-lg text-zinc-200">
+          シェルの機能
+        </h2>
+        <div className="mt-3 space-y-3">
+          {SHELL_FEATURES.map((feat) => (
+            <div key={feat.title} className="rounded-md border border-zinc-800 p-4">
+              <p className="font-semibold text-sky-400 text-sm">{feat.title}</p>
+              <ul className="mt-3 space-y-1.5">
+                {feat.examples.map((ex) => (
+                  <ExampleRow key={ex.cmd} ex={ex} />
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="border-zinc-800 border-b pb-2 font-semibold text-lg text-zinc-200">
+          未対応の機能
+        </h2>
+        <p className="mt-3 text-sm text-zinc-500">
+          以下は本物の Linux にはあるが、terminarai では未実装です (将来追加予定)。
+        </p>
+        <ul className="mt-3 space-y-1 text-sm text-zinc-400">
+          {UNSUPPORTED.map((item) => (
+            <li key={item}>
+              <span className="text-zinc-600">·</span> {item}
+            </li>
+          ))}
+        </ul>
+      </section>
+    </PageShell>
   )
 }

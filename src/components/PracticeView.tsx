@@ -8,6 +8,7 @@ import {
   type Problem,
   saveProgress,
 } from '../lessons'
+import { PATHS, toProblem } from '../routes'
 import { type CommandContext, type CommandResult, createShell, defaultContext } from '../shell'
 import { registerAllCommands } from '../shell/commands'
 import { createDefaultVfs, createVfs, HOME_PATH, type Vfs } from '../vfs'
@@ -110,7 +111,7 @@ export function PracticeView({ problem }: PracticeViewProps) {
     <div className="flex h-full min-h-0 flex-col">
       <section className="shrink-0 border-zinc-800 border-b bg-zinc-900 px-6 py-4 text-zinc-100">
         <nav aria-label="現在地" className="text-xs">
-          <Link to="/practice" className="text-zinc-500 transition-colors hover:text-zinc-300">
+          <Link to={PATHS.practice} className="text-zinc-500 transition-colors hover:text-zinc-300">
             自習問題
           </Link>
           <span className="mx-2 text-zinc-700">/</span>
@@ -148,14 +149,14 @@ export function PracticeView({ problem }: PracticeViewProps) {
             </div>
             <div className="mt-3 flex flex-wrap gap-2 text-sm">
               <Link
-                to="/practice"
+                to={PATHS.practice}
                 className="rounded border border-zinc-700 px-3 py-1.5 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-100"
               >
                 ← 問題一覧へ戻る
               </Link>
               {nextProblem ? (
                 <Link
-                  to={`/practice/${nextProblem.id}`}
+                  to={toProblem(nextProblem.id)}
                   className="rounded border border-emerald-600 bg-emerald-700/20 px-3 py-1.5 text-emerald-300 transition-colors hover:border-emerald-400 hover:bg-emerald-700/40"
                 >
                   次の問題へ →
