@@ -9,20 +9,21 @@ import { PracticePage } from './pages/PracticePage'
 import { ReferencePage } from './pages/ReferencePage'
 import { SandboxPage } from './pages/SandboxPage'
 import { TutorialIndexPage } from './pages/TutorialIndexPage'
+import { PATHS } from './routes'
 
 function App() {
   return (
     <Routes>
       <Route element={<Layout />}>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/tutorial" element={<TutorialIndexPage />} />
-        <Route path="/tutorial/:chapterId" element={<ChapterIndexPage />} />
-        <Route path="/tutorial/:chapterId/:lessonId" element={<LessonPage />} />
-        <Route path="/practice" element={<PracticeIndexPage />} />
-        <Route path="/practice/:problemId" element={<PracticePage />} />
-        <Route path="/sandbox" element={<SandboxPage />} />
-        <Route path="/reference" element={<ReferencePage />} />
-        <Route path="*" element={<NotFoundPage />} />
+        <Route path={PATHS.home} element={<HomePage />} />
+        <Route path={PATHS.tutorial} element={<TutorialIndexPage />} />
+        <Route path={PATHS.chapter} element={<ChapterIndexPage />} />
+        <Route path={PATHS.lesson} element={<LessonPage />} />
+        <Route path={PATHS.practice} element={<PracticeIndexPage />} />
+        <Route path={PATHS.problem} element={<PracticePage />} />
+        <Route path={PATHS.sandbox} element={<SandboxPage />} />
+        <Route path={PATHS.reference} element={<ReferencePage />} />
+        <Route path={PATHS.notFound} element={<NotFoundPage />} />
       </Route>
     </Routes>
   )
