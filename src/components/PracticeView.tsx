@@ -61,17 +61,33 @@ export function PracticeView({ problem }: PracticeViewProps) {
     () => loadProgress('practice', problem.id)?.completed ?? false,
   )
   const [revealedHints, setRevealedHints] = useState(0)
+  // 解答済みの問題を「もう一度挑戦」でガイド付きに解き直している最中か。
+  // completed (= localStorage の記録) は保持したまま、表示と判定だけ一時的に再開する。
+  const [retrying, setRetrying] = useState(false)
+  // 再挑戦のたびに増やし、Terminal の key に混ぜて再 mount (履歴・FS をリセット) させる。
+  const [attempt, setAttempt] = useState(0)
 
   useEffect(() => {
     setSession(buildSession(problem))
     setStepIndex(0)
     setCompleted(loadProgress('practice', problem.id)?.completed ?? false)
     setRevealedHints(0)
+    setRetrying(false)
+  }, [problem])
+
+  // 解答済みの問題を初期状態に戻して解き直す (記録は消さない)。
+  const handleRetry = useCallback(() => {
+    setSession(buildSession(problem))
+    setStepIndex(0)
+    setRevealedHints(0)
+    setRetrying(true)
+    setAttempt((n) => n + 1)
   }, [problem])
 
   const handleAfterExecute = useCallback(
     (input: string, _result: CommandResult, ctxAfter: CommandContext) => {
-      if (completed) return
+      // 解答済みかつ再挑戦中でなければ判定しない (再挑戦中はガイドを再開しているので判定する)
+      if (completed && !retrying) return
       const step = problem.steps[stepIndex]
       if (!step) return
       const passed = evaluateCheck(step.check, {
@@ -85,6 +101,7 @@ export function PracticeView({ problem }: PracticeViewProps) {
       const now = Date.now()
       if (nextIndex >= problem.steps.length) {
         setCompleted(true)
+        setRetrying(false)
         saveProgress('practice', problem.id, {
           completedSteps: problem.steps.length,
           completed: true,
@@ -100,7 +117,7 @@ export function PracticeView({ problem }: PracticeViewProps) {
         })
       }
     },
-    [completed, problem, stepIndex, session.vfs],
+    [completed, retrying, problem, stepIndex, session.vfs],
   )
 
   const currentStep = problem.steps[stepIndex]
@@ -139,7 +156,7 @@ export function PracticeView({ problem }: PracticeViewProps) {
           <FormattedText text={problem.description} />
         </p>
 
-        {completed ? (
+        {completed && !retrying ? (
           <div className="mt-4">
             <div
               role="status"
@@ -148,6 +165,13 @@ export function PracticeView({ problem }: PracticeViewProps) {
               問題を解きました 🎉
             </div>
             <div className="mt-3 flex flex-wrap gap-2 text-sm">
+              <button
+                type="button"
+                onClick={handleRetry}
+                className="rounded border border-zinc-700 px-3 py-1.5 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-100"
+              >
+                もう一度挑戦する
+              </button>
               <Link
                 to={PATHS.practice}
                 className="rounded border border-zinc-700 px-3 py-1.5 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-100"
@@ -166,6 +190,9 @@ export function PracticeView({ problem }: PracticeViewProps) {
           </div>
         ) : currentStep ? (
           <div role="status" aria-live="polite" className="mt-4">
+            {retrying && (
+              <p className="mb-1 text-xs text-zinc-500">再挑戦中 (解答済みの記録は保持されます)</p>
+            )}
             {problem.steps.length > 1 && (
               <p className="text-emerald-400 text-xs uppercase tracking-wide">
                 ステップ {stepIndex + 1} / {problem.steps.length}
@@ -192,7 +219,7 @@ export function PracticeView({ problem }: PracticeViewProps) {
 
       <div className="flex min-h-0 flex-1">
         <Terminal
-          key={`practice/${problem.id}`}
+          key={`practice/${problem.id}/${attempt}`}
           shell={session.shell}
           initialCtx={defaultContext(initialCwd)}
           onAfterExecute={handleAfterExecute}

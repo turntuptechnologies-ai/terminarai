@@ -86,6 +86,42 @@ describe('PracticeView', () => {
     expect(screen.getByText(/問題を解きました/)).toBeInTheDocument()
   })
 
+  it('解答済後「もう一度挑戦する」で説明とヒントが復活し、解答記録は保持される', async () => {
+    const user = userEvent.setup()
+    window.localStorage.setItem(
+      'terminarai:progress:practice/test-problem',
+      JSON.stringify({ completedSteps: 1, completed: true, updatedAt: 100 }),
+    )
+    renderWithRouter(<PracticeView problem={makeProblem()} />)
+    // 初期は解答済表示でガイドは出ていない
+    expect(screen.getByText(/問題を解きました/)).toBeInTheDocument()
+    expect(screen.queryByText(/pwd を実行してください/)).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'もう一度挑戦する' }))
+
+    // 説明とヒントボタンが復活
+    expect(screen.getByText(/pwd を実行してください/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'ヒントを見る' })).toBeInTheDocument()
+    expect(screen.getByText(/再挑戦中/)).toBeInTheDocument()
+    // 解答済バナーは消える
+    expect(screen.queryByText(/問題を解きました/)).not.toBeInTheDocument()
+    // localStorage の解答記録は保持されたまま
+    expect(loadProgress('practice', 'test-problem')?.completed).toBe(true)
+  })
+
+  it('再挑戦して再度解くと解答済表示に戻る', async () => {
+    const user = userEvent.setup()
+    window.localStorage.setItem(
+      'terminarai:progress:practice/test-problem',
+      JSON.stringify({ completedSteps: 1, completed: true, updatedAt: 100 }),
+    )
+    renderWithRouter(<PracticeView problem={makeProblem()} />)
+    await user.click(screen.getByRole('button', { name: 'もう一度挑戦する' }))
+    const input = screen.getByLabelText('ターミナル入力')
+    await user.type(input, 'pwd{Enter}')
+    expect(await screen.findByText(/問題を解きました/)).toBeInTheDocument()
+  })
+
   it('単一ステップの問題ではステップ表示が出ない', () => {
     renderWithRouter(<PracticeView problem={makeProblem()} />)
     // ステップ 1 / 1 の表記は単一ステップなら出ない
