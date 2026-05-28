@@ -203,6 +203,15 @@ const SHELL_FEATURES: ShellFeature[] = [
     ],
   },
   {
+    title: 'ワイルドカード (グロブ)',
+    examples: [
+      { cmd: 'grep ERROR *.log', note: '* は任意の文字列' },
+      { cmd: 'cat file?.txt', note: '? は任意の 1 文字' },
+      { cmd: 'ls [abc]*.txt', note: '[...] は文字クラス' },
+      { cmd: 'cat docs/*.md', note: 'ディレクトリ配下も可' },
+    ],
+  },
+  {
     title: 'キー操作',
     examples: [
       { cmd: '↑ / ↓', note: 'コマンド履歴を遡る / 戻す' },

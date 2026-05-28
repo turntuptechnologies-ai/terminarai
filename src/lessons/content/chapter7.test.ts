@@ -20,9 +20,9 @@ const getLessonOrThrow = (id: string) => {
 }
 
 describe('CHAPTER_7 構造', () => {
-  it('4 レッスン構成', () => {
+  it('5 レッスン構成', () => {
     expect(CHAPTER_7.id).toBe('7')
-    expect(CHAPTER_7.lessons.map((l) => l.id)).toEqual(['7-1', '7-2', '7-3', '7-4'])
+    expect(CHAPTER_7.lessons.map((l) => l.id)).toEqual(['7-1', '7-2', '7-3', '7-4', '7-5'])
   })
 
   it('全レッスンの chapterId が "7"', () => {
@@ -134,6 +134,20 @@ describe('CHAPTER_7 各レッスンの check が期待コマンドで通る', ()
     const lesson = getLessonOrThrow('7-4')
     expect(
       evaluateCheck(lesson.steps[1].check, ctxFor({ lastCommand: 'grep -i info access.log' })),
+    ).toBe(false)
+  })
+
+  it('7-5: grep ERROR *.log (ワイルドカード) でクリア', () => {
+    const lesson = getLessonOrThrow('7-5')
+    expect(evaluateCheck(lesson.steps[0].check, ctxFor({ lastCommand: 'grep ERROR *.log' }))).toBe(
+      true,
+    )
+  })
+
+  it('7-5: ワイルドカードを使わない (access.log 直指定) ではクリアしない', () => {
+    const lesson = getLessonOrThrow('7-5')
+    expect(
+      evaluateCheck(lesson.steps[0].check, ctxFor({ lastCommand: 'grep ERROR access.log' })),
     ).toBe(false)
   })
 })

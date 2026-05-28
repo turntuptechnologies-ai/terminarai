@@ -1,5 +1,6 @@
 import type { Vfs } from '../vfs'
 import { type CompletionResult, complete as completeImpl } from './completion'
+import { expandGlobs } from './glob'
 import { parse } from './parser'
 import { tokenize } from './tokenizer'
 import type {
@@ -95,7 +96,10 @@ class ShellImpl implements Shell {
       return makeResult(emptyResult(), ctx, ctx.cwd)
     }
 
-    const { argv, stdoutRedirect } = parseResult.command
+    // パス名展開 (グロブ): `*.txt` 等を cwd 基準で実ファイル名に展開する。
+    // リダイレクト先は展開しない (リテラルのまま)。
+    const { argv: rawArgv, stdoutRedirect } = parseResult.command
+    const argv = expandGlobs(rawArgv, ctx.cwd, this.vfs)
     const cmdName = argv[0]
     const args = argv.slice(1)
 
