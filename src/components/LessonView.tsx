@@ -45,6 +45,11 @@ export function LessonView({ lesson, onComplete }: LessonViewProps) {
   )
   // 多段ヒント: 0=未表示、1..N=N 番目までを順次開示
   const [revealedHints, setRevealedHints] = useState(0)
+  // 完了済みレッスンを「もう一度挑戦」でガイド付きに解き直している最中か。
+  // completed (= localStorage の記録) は保持したまま、表示と判定だけ一時的に再開する。
+  const [retrying, setRetrying] = useState(false)
+  // 再挑戦のたびに増やし、Terminal の key に混ぜて再 mount (履歴・FS をリセット) させる。
+  const [attempt, setAttempt] = useState(0)
 
   // レッスン (lesson.id) が切り替わったら state を全リセット
   useEffect(() => {
@@ -52,11 +57,22 @@ export function LessonView({ lesson, onComplete }: LessonViewProps) {
     setStepIndex(0)
     setCompleted(loadProgress(lesson.chapterId, lesson.id)?.completed ?? false)
     setRevealedHints(0)
+    setRetrying(false)
   }, [lesson.id, lesson.chapterId, lesson])
+
+  // 完了済みレッスンを初期状態に戻して解き直す (記録は消さない)。
+  const handleRetry = useCallback(() => {
+    setSession(buildSession(lesson))
+    setStepIndex(0)
+    setRevealedHints(0)
+    setRetrying(true)
+    setAttempt((n) => n + 1)
+  }, [lesson])
 
   const handleAfterExecute = useCallback(
     (input: string, _result: CommandResult, ctxAfter: CommandContext) => {
-      if (completed) return
+      // 完了済みかつ再挑戦中でなければ判定しない (再挑戦中はガイドを再開しているので判定する)
+      if (completed && !retrying) return
       const step = lesson.steps[stepIndex]
       if (!step) return
       const passed = evaluateCheck(step.check, {
@@ -70,6 +86,7 @@ export function LessonView({ lesson, onComplete }: LessonViewProps) {
       const now = Date.now()
       if (nextIndex >= lesson.steps.length) {
         setCompleted(true)
+        setRetrying(false)
         saveProgress(lesson.chapterId, lesson.id, {
           completedSteps: lesson.steps.length,
           completed: true,
@@ -86,7 +103,7 @@ export function LessonView({ lesson, onComplete }: LessonViewProps) {
         })
       }
     },
-    [completed, lesson, stepIndex, session.vfs, onComplete],
+    [completed, retrying, lesson, stepIndex, session.vfs, onComplete],
   )
 
   const currentStep = lesson.steps[stepIndex]
@@ -113,7 +130,7 @@ export function LessonView({ lesson, onComplete }: LessonViewProps) {
           <FormattedText text={lesson.description} />
         </p>
 
-        {completed ? (
+        {completed && !retrying ? (
           <div className="mt-4">
             <div
               role="status"
@@ -122,6 +139,13 @@ export function LessonView({ lesson, onComplete }: LessonViewProps) {
               全てのステップをクリアしました。
             </div>
             <div className="mt-3 flex flex-wrap gap-2 text-sm">
+              <button
+                type="button"
+                onClick={handleRetry}
+                className="rounded border border-zinc-700 px-3 py-1.5 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-100"
+              >
+                もう一度挑戦する
+              </button>
               <Link
                 to={toChapter(lesson.chapterId)}
                 className="rounded border border-zinc-700 px-3 py-1.5 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-100"
@@ -147,6 +171,9 @@ export function LessonView({ lesson, onComplete }: LessonViewProps) {
           </div>
         ) : currentStep ? (
           <div role="status" aria-live="polite" className="mt-4">
+            {retrying && (
+              <p className="mb-1 text-xs text-zinc-500">再挑戦中 (記録済みの完了は保持されます)</p>
+            )}
             <p className="text-emerald-400 text-xs uppercase tracking-wide">
               ステップ {stepIndex + 1} / {lesson.steps.length}
             </p>
@@ -170,9 +197,9 @@ export function LessonView({ lesson, onComplete }: LessonViewProps) {
       </section>
 
       <div className="flex min-h-0 flex-1">
-        {/* レッスン切替時に Terminal の履歴等を引き継がないよう、key で再 mount を強制 */}
+        {/* レッスン切替・再挑戦時に Terminal の履歴等を引き継がないよう、key で再 mount を強制 */}
         <Terminal
-          key={`${lesson.chapterId}/${lesson.id}`}
+          key={`${lesson.chapterId}/${lesson.id}/${attempt}`}
           shell={session.shell}
           initialCtx={defaultContext(initialCwd)}
           onAfterExecute={handleAfterExecute}

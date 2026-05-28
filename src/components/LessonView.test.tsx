@@ -145,6 +145,44 @@ describe('LessonView', () => {
     await user.click(screen.getByRole('link', { name: /章一覧へ戻る/ }))
   })
 
+  it('完了後「もう一度挑戦する」でガイド (説明 + ヒント) が復活し、完了記録は保持される', async () => {
+    const user = userEvent.setup()
+    window.localStorage.setItem(
+      'terminarai:progress:1/test-lesson',
+      JSON.stringify({ completedSteps: 2, completed: true, updatedAt: 100 }),
+    )
+    renderWithRouter(<LessonView lesson={makeLesson()} />)
+    // 初期は完了表示でガイドは出ていない
+    expect(screen.getByText(/全てのステップをクリア/)).toBeInTheDocument()
+    expect(screen.queryByText(/まず pwd を実行/)).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'もう一度挑戦する' }))
+
+    // ステップ 1 の説明とヒントボタンが復活
+    expect(screen.getByText(/ステップ 1 \/ 2/)).toBeInTheDocument()
+    expect(screen.getByText(/まず pwd を実行/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'ヒントを見る' })).toBeInTheDocument()
+    expect(screen.getByText(/再挑戦中/)).toBeInTheDocument()
+    // 完了バナーは消える
+    expect(screen.queryByText(/全てのステップをクリア/)).not.toBeInTheDocument()
+    // localStorage の完了記録は保持されたまま
+    expect(loadProgress('1', 'test-lesson')?.completed).toBe(true)
+  })
+
+  it('再挑戦して再度全ステップ完了すると完了表示に戻る', async () => {
+    const user = userEvent.setup()
+    window.localStorage.setItem(
+      'terminarai:progress:1/test-lesson',
+      JSON.stringify({ completedSteps: 2, completed: true, updatedAt: 100 }),
+    )
+    renderWithRouter(<LessonView lesson={makeLesson()} />)
+    await user.click(screen.getByRole('button', { name: 'もう一度挑戦する' }))
+    const input = screen.getByLabelText('ターミナル入力')
+    await user.type(input, 'pwd{Enter}')
+    await user.type(input, 'cd docs{Enter}')
+    expect(await screen.findByText(/全てのステップをクリア/)).toBeInTheDocument()
+  })
+
   it('ステップ進行でヒント表示がリセットされる', async () => {
     const user = userEvent.setup()
     renderWithRouter(<LessonView lesson={makeLesson()} />)
