@@ -21,7 +21,7 @@ function vfsForProblem(id: string): Vfs {
 }
 
 describe('PROBLEMS', () => {
-  it('9 問の構成 (p1-p9)', () => {
+  it('14 問の構成 (p1-p14)', () => {
     expect(PROBLEMS.map((p) => p.id)).toEqual([
       'p1',
       'p2',
@@ -32,6 +32,11 @@ describe('PROBLEMS', () => {
       'p7',
       'p8',
       'p9',
+      'p10',
+      'p11',
+      'p12',
+      'p13',
+      'p14',
     ])
   })
 
@@ -48,6 +53,7 @@ describe('PROBLEMS', () => {
   it('findProblem', () => {
     expect(findProblem('p1')?.id).toBe('p1')
     expect(findProblem('p9')?.id).toBe('p9')
+    expect(findProblem('p14')?.id).toBe('p14')
     expect(findProblem('nope')).toBeUndefined()
   })
 
@@ -55,7 +61,9 @@ describe('PROBLEMS', () => {
     expect(findNextProblem('p1')?.id).toBe('p2')
     expect(findNextProblem('p5')?.id).toBe('p6')
     expect(findNextProblem('p8')?.id).toBe('p9')
-    expect(findNextProblem('p9')).toBeUndefined()
+    expect(findNextProblem('p9')?.id).toBe('p10')
+    expect(findNextProblem('p13')?.id).toBe('p14')
+    expect(findNextProblem('p14')).toBeUndefined()
     expect(findNextProblem('nope')).toBeUndefined()
   })
 })
@@ -229,6 +237,109 @@ describe('PROBLEMS check 動作確認', () => {
             lastCommand: 'cat /home/user/secret/deep/hidden/treasure.txt',
           }),
         ),
+      ).toBe(false)
+    })
+  })
+
+  describe('p10: grep でログから ERROR を抽出', () => {
+    const p = findProblem('p10') as NonNullable<ReturnType<typeof findProblem>>
+
+    it('grep ERROR access.log でクリア', () => {
+      expect(
+        evaluateCheck(p.steps[0].check, ctxFor({ lastCommand: 'grep ERROR access.log' })),
+      ).toBe(true)
+    })
+
+    it('別パターン / 別コマンドならクリアしない', () => {
+      expect(evaluateCheck(p.steps[0].check, ctxFor({ lastCommand: 'grep INFO access.log' }))).toBe(
+        false,
+      )
+      expect(evaluateCheck(p.steps[0].check, ctxFor({ lastCommand: 'cat access.log' }))).toBe(false)
+    })
+  })
+
+  describe('p11: grep のフラグ活用 (-n / -i)', () => {
+    const p = findProblem('p11') as NonNullable<ReturnType<typeof findProblem>>
+
+    it('step1: grep -n INFO access.log でクリア', () => {
+      expect(
+        evaluateCheck(p.steps[0].check, ctxFor({ lastCommand: 'grep -n INFO access.log' })),
+      ).toBe(true)
+    })
+
+    it('step1: -n が無いとクリアしない', () => {
+      expect(evaluateCheck(p.steps[0].check, ctxFor({ lastCommand: 'grep INFO access.log' }))).toBe(
+        false,
+      )
+    })
+
+    it('step2: grep -i error / grep -in error どちらでもクリア', () => {
+      expect(
+        evaluateCheck(p.steps[1].check, ctxFor({ lastCommand: 'grep -i error access.log' })),
+      ).toBe(true)
+      expect(
+        evaluateCheck(p.steps[1].check, ctxFor({ lastCommand: 'grep -in error access.log' })),
+      ).toBe(true)
+    })
+
+    it('step2: -i が無いとクリアしない', () => {
+      expect(
+        evaluateCheck(p.steps[1].check, ctxFor({ lastCommand: 'grep error access.log' })),
+      ).toBe(false)
+    })
+  })
+
+  describe('p12: head / tail で先頭・末尾を確認', () => {
+    const p = findProblem('p12') as NonNullable<ReturnType<typeof findProblem>>
+
+    it('step1: head -n 5 / head -5 server.log でクリア', () => {
+      expect(evaluateCheck(p.steps[0].check, ctxFor({ lastCommand: 'head -n 5 server.log' }))).toBe(
+        true,
+      )
+      expect(evaluateCheck(p.steps[0].check, ctxFor({ lastCommand: 'head -5 server.log' }))).toBe(
+        true,
+      )
+    })
+
+    it('step1: tail だとクリアしない (head が条件)', () => {
+      expect(evaluateCheck(p.steps[0].check, ctxFor({ lastCommand: 'tail -n 5 server.log' }))).toBe(
+        false,
+      )
+    })
+
+    it('step2: tail -n 5 server.log でクリア', () => {
+      expect(evaluateCheck(p.steps[1].check, ctxFor({ lastCommand: 'tail -n 5 server.log' }))).toBe(
+        true,
+      )
+    })
+  })
+
+  describe('p13: vi でメモを書いて保存', () => {
+    const p = findProblem('p13') as NonNullable<ReturnType<typeof findProblem>>
+
+    it('step1: vi tasks.txt でクリア', () => {
+      expect(evaluateCheck(p.steps[0].check, ctxFor({ lastCommand: 'vi tasks.txt' }))).toBe(true)
+    })
+
+    it('step2: tasks.txt に Buy milk が書かれていればクリア', () => {
+      const vfs = createDefaultVfs()
+      expect(evaluateCheck(p.steps[1].check, ctxFor({ vfs }))).toBe(false)
+      vfs.writeFile('/home/user/tasks.txt', 'Buy milk\n')
+      expect(evaluateCheck(p.steps[1].check, ctxFor({ vfs }))).toBe(true)
+    })
+  })
+
+  describe('p14: ワイルドカードでまとめて表示', () => {
+    const p = findProblem('p14') as NonNullable<ReturnType<typeof findProblem>>
+
+    it('cat *.txt でクリア', () => {
+      expect(evaluateCheck(p.steps[0].check, ctxFor({ lastCommand: 'cat *.txt' }))).toBe(true)
+    })
+
+    it('ワイルドカード無し (個別指定) ではクリアしない', () => {
+      expect(evaluateCheck(p.steps[0].check, ctxFor({ lastCommand: 'cat a.txt' }))).toBe(false)
+      expect(
+        evaluateCheck(p.steps[0].check, ctxFor({ lastCommand: 'cat a.txt b.txt c.txt' })),
       ).toBe(false)
     })
   })
