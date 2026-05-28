@@ -25,9 +25,37 @@ function file(name: string, content: string): VfsFile {
   }
 }
 
+/** p10 / p11 用サンプルログ。大文字 ERROR と小文字 error を混在させ、`-i` の効果が分かるようにする。 */
+const ACCESS_LOG = `INFO 2026-05-27 user login
+ERROR 2026-05-27 disk full
+INFO 2026-05-27 user logout
+WARN 2026-05-27 slow query
+error 2026-05-27 timeout
+INFO 2026-05-27 user login
+`
+
+/** p12 用の 20 行ログ。head / tail のデフォルト 10 行との差が出るよう長めにする。 */
+const SERVER_LOG = `${Array.from({ length: 20 }, (_, i) => `line${String(i + 1).padStart(2, '0')}`).join('\n')}\n`
+
+/** access.log を含む共通 FS (p10 / p11 用)。 */
+function initialFsWithAccessLog(): VfsDirectory {
+  return dir('/', {
+    home: dir('home', {
+      user: dir('user', {
+        'README.txt': file('README.txt', 'ログは access.log にあります。\n'),
+        'access.log': file('access.log', ACCESS_LOG),
+        docs: dir('docs'),
+      }),
+    }),
+    tmp: dir('tmp'),
+    etc: dir('etc'),
+    usr: dir('usr'),
+  })
+}
+
 /**
  * 自習問題のレジストリ。
- * チュートリアル第1〜5章で習った内容を組み合わせて挑戦する構成。
+ * チュートリアル第1〜7章で習った内容を組み合わせて挑戦する構成。
  *
  * 各問題は initialFs を持つことで、ターゲットの状況を明示的にセットできる。
  * 省略時は createDefaultVfs() の初期 FS を使う。
@@ -332,6 +360,199 @@ export const PROBLEMS: Problem[] = [
               kind: 'command-matches',
               pattern: '^\\s*cat\\s+(?:\\S*/)?treasure\\.txt\\b',
             },
+          ],
+        },
+      },
+    ],
+  },
+  {
+    id: 'p10',
+    title: 'ログから ERROR 行を抜き出す',
+    description:
+      '`/home/user/access.log` にサーバのログがあります。`grep` を使って `ERROR` を含む行だけを画面に出してください。',
+    difficulty: 'easy',
+    tags: ['grep'],
+    initialFs: initialFsWithAccessLog(),
+    steps: [
+      {
+        instruction: '`grep ERROR access.log` で `ERROR` を含む行だけを表示しましょう。',
+        hints: [
+          '`grep <パターン> <ファイル名>` の順で書きます。',
+          '`grep ERROR access.log` と入力。',
+        ],
+        check: {
+          kind: 'and',
+          checks: [
+            { kind: 'command-name', name: 'grep' },
+            { kind: 'command-matches', pattern: '\\bERROR\\b' },
+            { kind: 'command-matches', pattern: '(?:\\S*/)?access\\.log\\b' },
+          ],
+        },
+      },
+    ],
+  },
+  {
+    id: 'p11',
+    title: 'ログを行番号付き・大小区別なしで検索する',
+    description:
+      'ログには大文字 `ERROR` と小文字 `error` が混在しています。`grep` のフラグを使って、(1) 行番号付きで `INFO` を探し、(2) 大小区別なしで `error` をすべて拾ってみましょう。',
+    difficulty: 'medium',
+    tags: ['grep', '-i', '-n'],
+    initialFs: initialFsWithAccessLog(),
+    steps: [
+      {
+        instruction: '`grep -n INFO access.log` で `INFO` の行を行番号付きで表示してください。',
+        hints: [
+          '`-n` / `--line-number` で各行の前に行番号が付きます。',
+          '`grep -n INFO access.log` と入力。',
+        ],
+        check: {
+          kind: 'and',
+          checks: [
+            { kind: 'command-name', name: 'grep' },
+            { kind: 'command-matches', pattern: '(?:-n\\b|-\\w*n\\w*|--line-number\\b)' },
+            { kind: 'command-matches', pattern: '\\bINFO\\b' },
+            { kind: 'command-matches', pattern: '(?:\\S*/)?access\\.log\\b' },
+          ],
+        },
+      },
+      {
+        instruction:
+          '次に `grep -i error access.log` で、大小区別なしに `error` を検索してください (大文字 ERROR と小文字 error の両方が出ます)。',
+        hints: [
+          '`-i` / `--ignore-case` で大文字小文字を区別しなくなります。',
+          '`grep -i error access.log` と入力。',
+        ],
+        check: {
+          kind: 'and',
+          checks: [
+            { kind: 'command-name', name: 'grep' },
+            { kind: 'command-matches', pattern: '(?:-i\\b|-\\w*i\\w*|--ignore-case\\b)' },
+            { kind: 'command-matches', pattern: '\\berror\\b' },
+            { kind: 'command-matches', pattern: '(?:\\S*/)?access\\.log\\b' },
+          ],
+        },
+      },
+    ],
+  },
+  {
+    id: 'p12',
+    title: '長いログの先頭と末尾だけ確認する',
+    description:
+      '`server.log` は 20 行あります。全部表示すると長いので、`head` で先頭 5 行、`tail` で末尾 5 行だけを確認してください。',
+    difficulty: 'medium',
+    tags: ['head', 'tail'],
+    initialFs: dir('/', {
+      home: dir('home', {
+        user: dir('user', {
+          'README.txt': file('README.txt', 'server.log は 20 行あります。\n'),
+          'server.log': file('server.log', SERVER_LOG),
+          docs: dir('docs'),
+        }),
+      }),
+      tmp: dir('tmp'),
+      etc: dir('etc'),
+      usr: dir('usr'),
+    }),
+    steps: [
+      {
+        instruction:
+          'まず `head -n 5 server.log` で先頭 5 行 (line01〜line05) を表示してください。',
+        hints: [
+          '`-n 5` で行数指定。`-5` や `--lines=5` でも OK。',
+          '`head -n 5 server.log` と入力。',
+        ],
+        check: {
+          kind: 'and',
+          checks: [
+            { kind: 'command-name', name: 'head' },
+            { kind: 'command-matches', pattern: '(?:-n\\s*5|-n5|--lines=5|-5)\\b' },
+            { kind: 'command-matches', pattern: '(?:\\S*/)?server\\.log\\b' },
+          ],
+        },
+      },
+      {
+        instruction:
+          '次に `tail -n 5 server.log` で末尾 5 行 (line16〜line20) を表示してください。',
+        hints: ['`tail -n 5 server.log` と入力。`-5` や `--lines=5` でも OK。'],
+        check: {
+          kind: 'and',
+          checks: [
+            { kind: 'command-name', name: 'tail' },
+            { kind: 'command-matches', pattern: '(?:-n\\s*5|-n5|--lines=5|-5)\\b' },
+            { kind: 'command-matches', pattern: '(?:\\S*/)?server\\.log\\b' },
+          ],
+        },
+      },
+    ],
+  },
+  {
+    id: 'p13',
+    title: 'vi でメモを書いて保存する',
+    description:
+      'エディタ `vi` で新しいファイルを作り、内容を書いて保存します。NORMAL / INSERT / COMMAND の 3 モードを思い出しながら操作しましょう。',
+    difficulty: 'medium',
+    tags: ['vi'],
+    steps: [
+      {
+        instruction:
+          '`vi tasks.txt` で新しいファイルをエディタで開きましょう。起動直後は NORMAL モードです。',
+        hints: [
+          '`vi <ファイル名>` でエディタが開きます。存在しないファイルは新規作成扱いです。',
+          '`vi tasks.txt` と入力して Enter。エディタ画面に切り替わったら次のステップへ。',
+        ],
+        check: { kind: 'command-name', name: 'vi' },
+      },
+      {
+        instruction:
+          '`i` で INSERT モードに入り `Buy milk` と書き、`Esc` で NORMAL に戻ってから `:wq` Enter で保存・終了してください。',
+        hints: [
+          'NORMAL で `i` を押すと入力できる状態 (-- INSERT --) になります。',
+          '書けたら `Esc` → `:wq` Enter で保存して終了。間違えたら `:q!` で破棄して `vi tasks.txt` からやり直し。',
+        ],
+        check: {
+          kind: 'and',
+          checks: [
+            { kind: 'file-exists', path: '/home/user/tasks.txt' },
+            { kind: 'file-contains', path: '/home/user/tasks.txt', text: 'Buy milk' },
+          ],
+        },
+      },
+    ],
+  },
+  {
+    id: 'p14',
+    title: 'ワイルドカードでまとめて表示する',
+    description:
+      'ホームに `a.txt` `b.txt` `c.txt` の 3 つのメモがあります。1 つずつ `cat` するのではなく、ワイルドカード `*` を使って `.txt` ファイルをまとめて表示してください。',
+    difficulty: 'medium',
+    tags: ['cat', '*'],
+    initialFs: dir('/', {
+      home: dir('home', {
+        user: dir('user', {
+          'a.txt': file('a.txt', 'apple\n'),
+          'b.txt': file('b.txt', 'banana\n'),
+          'c.txt': file('c.txt', 'cherry\n'),
+          docs: dir('docs'),
+        }),
+      }),
+      tmp: dir('tmp'),
+      etc: dir('etc'),
+      usr: dir('usr'),
+    }),
+    steps: [
+      {
+        instruction:
+          '`cat *.txt` で `.txt` で終わる全ファイル (a.txt, b.txt, c.txt) をまとめて表示しましょう。',
+        hints: [
+          '`*` は「任意の文字列」に展開されます。`*.txt` で「.txt で終わる全ファイル」を指せます。',
+          '`cat *.txt` と入力。3 ファイルの中身が続けて出ます。',
+        ],
+        check: {
+          kind: 'and',
+          checks: [
+            { kind: 'command-name', name: 'cat' },
+            { kind: 'command-matches', pattern: '\\*\\.txt\\b' },
           ],
         },
       },

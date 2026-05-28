@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { saveProgress } from '../lessons'
+import { PROBLEMS, saveProgress } from '../lessons'
 import { PracticeIndexPage } from './PracticeIndexPage'
 
 function renderPage() {
@@ -20,26 +20,26 @@ describe('PracticeIndexPage', () => {
     window.localStorage.clear()
   })
 
-  it('見出しと問題一覧 (9 問) が表示される', () => {
+  it('見出しと問題一覧 (全問) が表示される', () => {
     renderPage()
     expect(screen.getByRole('heading', { name: '自習問題' })).toBeInTheDocument()
-    // 9 問分の link が並ぶ
+    // PROBLEMS 全問分の link が順に並ぶ
     const links = screen.getAllByRole('link')
-    expect(links.length).toBe(9)
+    expect(links.length).toBe(PROBLEMS.length)
     expect(links[0]).toHaveAttribute('href', '/practice/p1')
-    expect(links[8]).toHaveAttribute('href', '/practice/p9')
+    expect(links[PROBLEMS.length - 1]).toHaveAttribute('href', `/practice/${PROBLEMS.at(-1)?.id}`)
   })
 
   it('未挑戦バッジが付く', () => {
     renderPage()
-    expect(screen.getAllByText('未挑戦').length).toBe(9)
+    expect(screen.getAllByText('未挑戦').length).toBe(PROBLEMS.length)
   })
 
   it('解答済の問題には「解答済」バッジが付く', () => {
     saveProgress('practice', 'p1', { completedSteps: 1, completed: true, updatedAt: 100 })
     renderPage()
     expect(screen.getByText('解答済')).toBeInTheDocument()
-    expect(screen.getAllByText('未挑戦').length).toBe(8)
+    expect(screen.getAllByText('未挑戦').length).toBe(PROBLEMS.length - 1)
   })
 
   it('難易度バッジが表示される (初級が複数、中級も)', () => {
