@@ -285,6 +285,7 @@ export function Terminal({ shell, initialCtx, banner = '', onAfterExecute }: Ter
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="off"
+          name="terminal-input"
           aria-label="ターミナル入力"
           className="min-w-0 flex-1 border-none bg-transparent text-zinc-100 caret-emerald-400 outline-none"
         />
