@@ -48,6 +48,28 @@ function initialFsWithLog(): VfsDirectory {
   })
 }
 
+const APP_LOG = `INFO app started
+ERROR config missing
+INFO app ready
+`
+
+/** 7-5 用: 複数の .log ファイルを置いてワイルドカード検索を体験させる。 */
+function initialFsWithMultipleLogs(): VfsDirectory {
+  return dir('/', {
+    home: dir('home', {
+      user: dir('user', {
+        'README.txt': file('README.txt', 'logs are in *.log\n'),
+        'access.log': file('access.log', ACCESS_LOG),
+        'app.log': file('app.log', APP_LOG),
+        docs: dir('docs'),
+      }),
+    }),
+    tmp: dir('tmp'),
+    etc: dir('etc'),
+    usr: dir('usr'),
+  })
+}
+
 /**
  * 第7章: テキストを検索する
  *
@@ -179,6 +201,33 @@ export const CHAPTER_7: Chapter = {
               { kind: 'command-matches', pattern: '-\\w*i\\w*|--ignore-case' },
               { kind: 'command-matches', pattern: '\\binfo\\b' },
               { kind: 'command-matches', pattern: '(?:\\S*/)?access\\.log\\b' },
+            ],
+          },
+        },
+      ],
+    },
+    {
+      id: '7-5',
+      chapterId: '7',
+      title: 'ワイルドカードで複数ファイルを検索する',
+      description:
+        '`*` (ワイルドカード) はファイル名のパターンに展開されます。`*.log` と書くと「`.log` で終わる全ファイル」に展開され、複数ファイルをまとめて検索できます。\n\nこのワイルドカード展開は grep に限らず、`cat *.txt` のようにどのコマンドでも使えます。',
+      initialFs: initialFsWithMultipleLogs(),
+      steps: [
+        {
+          instruction:
+            'いま `access.log` と `app.log` の 2 つのログがあります。`grep ERROR *.log` で両方からまとめて `ERROR` 行を検索してみましょう。',
+          hints: [
+            '`*.log` は「.log で終わる全ファイル」に展開されます (access.log と app.log)。',
+            '`grep ERROR *.log` と入力。出力には `ファイル名:行` の形で、どのファイルの行かが付きます。',
+          ],
+          check: {
+            kind: 'and',
+            checks: [
+              { kind: 'command-name', name: 'grep' },
+              { kind: 'command-matches', pattern: '\\bERROR\\b' },
+              // ワイルドカードを使ったことを担保 (*.log)
+              { kind: 'command-matches', pattern: '\\*\\.log\\b' },
             ],
           },
         },

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createDefaultVfs } from '../vfs'
+import { grep } from './commands/grep'
 import { createShell } from './shell'
 import { type CommandHandler, defaultContext, type Shell } from './types'
 
@@ -216,6 +217,42 @@ describe('Shell', () => {
     const { result } = shell.execute('cat foo | grep x', defaultContext())
     expect(result.exitCode).toBe(2)
     expect(result.stderr).toContain('not supported')
+  })
+
+  describe('グロブ展開 (#83)', () => {
+    it('*.txt が cwd の .txt ファイルに展開されてコマンドに渡る', () => {
+      const captured: string[][] = []
+      const spy: CommandHandler = (args) => {
+        captured.push(args)
+        return { stdout: '', stderr: '', exitCode: 0 }
+      }
+      shell.register('mycmd', spy)
+      // デフォルト VFS の /home/user に README.txt, hello.txt がある
+      shell.execute('mycmd *.txt', defaultContext('/home/user'))
+      expect(captured[0]).toEqual(['README.txt', 'hello.txt'])
+    })
+
+    it('マッチ無しはリテラルのまま渡る', () => {
+      const captured: string[][] = []
+      const spy: CommandHandler = (args) => {
+        captured.push(args)
+        return { stdout: '', stderr: '', exitCode: 0 }
+      }
+      shell.register('mycmd', spy)
+      shell.execute('mycmd *.nomatch', defaultContext('/home/user'))
+      expect(captured[0]).toEqual(['*.nomatch'])
+    })
+
+    it('grep が *.txt 経由で複数ファイルを検索できる (実コマンド統合)', () => {
+      shell.register('grep', grep)
+      vfs.writeFile('/home/user/x.txt', 'hello\nworld\n')
+      vfs.writeFile('/home/user/y.txt', 'hello there\n')
+      const { result } = shell.execute('grep hello *.txt', defaultContext('/home/user'))
+      expect(result.exitCode).toBe(0)
+      // 複数ファイルなので filename: プレフィクスが付く
+      expect(result.stdout).toContain('x.txt:hello')
+      expect(result.stdout).toContain('y.txt:hello there')
+    })
   })
 
   describe('学習者が試しそうな入力の挙動ロック (#11)', () => {
