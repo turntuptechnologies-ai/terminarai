@@ -1,3 +1,4 @@
+import { useLocale } from '../i18n'
 import { FormattedText } from './FormattedText'
 
 interface HintRevealProps {
@@ -18,13 +19,14 @@ interface HintRevealProps {
  * 単一ヒント (hints.length === 1) の場合は「ヒントを見る」 ⇔ 「ヒントを隠す」のトグルに退化する。
  */
 export function HintReveal({ hints, revealed, onReveal }: HintRevealProps) {
+  const { t } = useLocale()
   const total = hints.length
   const label =
     revealed === 0
-      ? 'ヒントを見る'
+      ? t('hint.show')
       : revealed < total
-        ? `次のヒント (${revealed} / ${total})`
-        : 'ヒントを隠す'
+        ? t('hint.next', { revealed, total })
+        : t('hint.hide')
 
   return (
     <div className="mt-2">

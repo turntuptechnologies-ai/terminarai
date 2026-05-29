@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useLocale } from '../i18n'
 import {
   type Difficulty,
   evaluateCheck,
@@ -39,12 +40,6 @@ const DIFFICULTY_CLASS: Record<Difficulty, string> = {
   hard: 'bg-rose-900/40 text-rose-300 border-rose-700/60',
 }
 
-const DIFFICULTY_LABEL: Record<Difficulty, string> = {
-  easy: '初級',
-  medium: '中級',
-  hard: '上級',
-}
-
 /**
  * 自習問題ビュー。
  *
@@ -55,6 +50,7 @@ const DIFFICULTY_LABEL: Record<Difficulty, string> = {
  * カスタムフックに切り出す。現状は意図的な重複。
  */
 export function PracticeView({ problem }: PracticeViewProps) {
+  const { t } = useLocale()
   const [session, setSession] = useState<SessionState>(() => buildSession(problem))
   const [stepIndex, setStepIndex] = useState(0)
   const [completed, setCompleted] = useState(
@@ -127,9 +123,9 @@ export function PracticeView({ problem }: PracticeViewProps) {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <section className="shrink-0 border-zinc-800 border-b bg-zinc-900 px-6 py-4 text-zinc-100">
-        <nav aria-label="現在地" className="text-xs">
+        <nav aria-label={t('breadcrumb.aria')} className="text-xs">
           <Link to={PATHS.practice} className="text-zinc-500 transition-colors hover:text-zinc-300">
-            自習問題
+            {t('practice.title')}
           </Link>
           <span className="mx-2 text-zinc-700">/</span>
           <span className="text-zinc-400">{problem.title}</span>
@@ -140,7 +136,7 @@ export function PracticeView({ problem }: PracticeViewProps) {
           <span
             className={`rounded border px-2 py-0.5 text-xs ${DIFFICULTY_CLASS[problem.difficulty]}`}
           >
-            {DIFFICULTY_LABEL[problem.difficulty]}
+            {t(`difficulty.${problem.difficulty}`)}
           </span>
           {problem.tags.map((tag) => (
             <code
@@ -162,7 +158,7 @@ export function PracticeView({ problem }: PracticeViewProps) {
               role="status"
               className="rounded-md border border-emerald-700 bg-emerald-900/30 px-4 py-3 text-emerald-300 text-sm"
             >
-              問題を解きました 🎉
+              {t('practice.solvedBanner')}
             </div>
             <div className="mt-3 flex flex-wrap gap-2 text-sm">
               <button
@@ -170,32 +166,30 @@ export function PracticeView({ problem }: PracticeViewProps) {
                 onClick={handleRetry}
                 className="rounded border border-zinc-700 px-3 py-1.5 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-100"
               >
-                もう一度挑戦する
+                {t('common.retry')}
               </button>
               <Link
                 to={PATHS.practice}
                 className="rounded border border-zinc-700 px-3 py-1.5 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-100"
               >
-                ← 問題一覧へ戻る
+                {t('practice.backToList')}
               </Link>
               {nextProblem ? (
                 <Link
                   to={toProblem(nextProblem.id)}
                   className="rounded border border-emerald-600 bg-emerald-700/20 px-3 py-1.5 text-emerald-300 transition-colors hover:border-emerald-400 hover:bg-emerald-700/40"
                 >
-                  次の問題へ →
+                  {t('practice.nextProblem')}
                 </Link>
               ) : null}
             </div>
           </div>
         ) : currentStep ? (
           <div role="status" aria-live="polite" className="mt-4">
-            {retrying && (
-              <p className="mb-1 text-xs text-zinc-500">再挑戦中 (解答済みの記録は保持されます)</p>
-            )}
+            {retrying && <p className="mb-1 text-xs text-zinc-500">{t('practice.retrying')}</p>}
             {problem.steps.length > 1 && (
               <p className="text-emerald-400 text-xs uppercase tracking-wide">
-                ステップ {stepIndex + 1} / {problem.steps.length}
+                {t('step.label', { current: stepIndex + 1, total: problem.steps.length })}
               </p>
             )}
             <p className="mt-1 text-zinc-100">

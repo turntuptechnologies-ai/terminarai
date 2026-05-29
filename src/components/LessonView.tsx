@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useLocale } from '../i18n'
 import { evaluateCheck, findNextLesson, type Lesson, loadProgress, saveProgress } from '../lessons'
 import { PATHS, toChapter, toLesson } from '../routes'
 import { type CommandContext, type CommandResult, createShell, defaultContext } from '../shell'
@@ -38,6 +39,7 @@ function buildSession(lesson: Lesson): SessionState {
  * - 1 コマンド = 最大 1 ステップ進行 (EvalContext の JSDoc 参照)
  */
 export function LessonView({ lesson, onComplete }: LessonViewProps) {
+  const { t } = useLocale()
   const [session, setSession] = useState<SessionState>(() => buildSession(lesson))
   const [stepIndex, setStepIndex] = useState(0)
   const [completed, setCompleted] = useState(
@@ -114,12 +116,12 @@ export function LessonView({ lesson, onComplete }: LessonViewProps) {
     <div className="flex h-full min-h-0 flex-col">
       <section className="shrink-0 border-zinc-800 border-b bg-zinc-900 px-6 py-4 text-zinc-100">
         {/* パンくず: いつでも章一覧に戻れるように */}
-        <nav aria-label="現在地" className="text-xs">
+        <nav aria-label={t('breadcrumb.aria')} className="text-xs">
           <Link
             to={toChapter(lesson.chapterId)}
             className="text-zinc-500 transition-colors hover:text-zinc-300"
           >
-            第 {lesson.chapterId} 章
+            {t('chapter.label', { id: lesson.chapterId })}
           </Link>
           <span className="mx-2 text-zinc-700">/</span>
           <span className="text-zinc-400">{lesson.title}</span>
@@ -136,7 +138,7 @@ export function LessonView({ lesson, onComplete }: LessonViewProps) {
               role="status"
               className="rounded-md border border-emerald-700 bg-emerald-900/30 px-4 py-3 text-emerald-300 text-sm"
             >
-              全てのステップをクリアしました。
+              {t('lesson.completedBanner')}
             </div>
             <div className="mt-3 flex flex-wrap gap-2 text-sm">
               <button
@@ -144,38 +146,36 @@ export function LessonView({ lesson, onComplete }: LessonViewProps) {
                 onClick={handleRetry}
                 className="rounded border border-zinc-700 px-3 py-1.5 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-100"
               >
-                もう一度挑戦する
+                {t('common.retry')}
               </button>
               <Link
                 to={toChapter(lesson.chapterId)}
                 className="rounded border border-zinc-700 px-3 py-1.5 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-100"
               >
-                ← 章一覧へ戻る
+                {t('lesson.backToChapter')}
               </Link>
               {nextLesson ? (
                 <Link
                   to={toLesson(nextLesson.chapterId, nextLesson.id)}
                   className="rounded border border-emerald-600 bg-emerald-700/20 px-3 py-1.5 text-emerald-300 transition-colors hover:border-emerald-400 hover:bg-emerald-700/40"
                 >
-                  次のレッスンへ →
+                  {t('lesson.nextLesson')}
                 </Link>
               ) : (
                 <Link
                   to={PATHS.tutorial}
                   className="rounded border border-zinc-700 px-3 py-1.5 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-100"
                 >
-                  全章一覧へ
+                  {t('lesson.allChapters')}
                 </Link>
               )}
             </div>
           </div>
         ) : currentStep ? (
           <div role="status" aria-live="polite" className="mt-4">
-            {retrying && (
-              <p className="mb-1 text-xs text-zinc-500">再挑戦中 (記録済みの完了は保持されます)</p>
-            )}
+            {retrying && <p className="mb-1 text-xs text-zinc-500">{t('lesson.retrying')}</p>}
             <p className="text-emerald-400 text-xs uppercase tracking-wide">
-              ステップ {stepIndex + 1} / {lesson.steps.length}
+              {t('step.label', { current: stepIndex + 1, total: lesson.steps.length })}
             </p>
             <p className="mt-1 text-zinc-100">
               <FormattedText text={currentStep.instruction} />
