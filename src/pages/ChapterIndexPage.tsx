@@ -1,23 +1,25 @@
 import { Link, useParams } from 'react-router-dom'
 import { FormattedText } from '../components/FormattedText'
 import { PageShell } from '../components/PageShell'
+import { useLocale } from '../i18n'
 import { findChapter, loadProgress } from '../lessons'
 import { PATHS, toLesson } from '../routes'
 
 export function ChapterIndexPage() {
+  const { t } = useLocale()
   const { chapterId } = useParams<{ chapterId: string }>()
   const chapter = chapterId ? findChapter(chapterId) : undefined
 
   if (!chapter) {
     return (
       <PageShell>
-        <h1 className="font-semibold text-2xl">章が見つかりません</h1>
-        <p className="mt-3 text-zinc-400">指定された章は存在しないか、まだ準備中です。</p>
+        <h1 className="font-semibold text-2xl">{t('chapter.notFound.title')}</h1>
+        <p className="mt-3 text-zinc-400">{t('chapter.notFound.desc')}</p>
         <Link
           to={PATHS.tutorial}
           className="mt-6 inline-block rounded border border-zinc-800 px-4 py-2 text-sm hover:border-emerald-500/60"
         >
-          チュートリアル一覧へ戻る
+          {t('chapter.backToTutorial')}
         </Link>
       </PageShell>
     )
@@ -25,7 +27,9 @@ export function ChapterIndexPage() {
 
   return (
     <PageShell>
-      <p className="text-emerald-400 text-xs uppercase tracking-wide">第 {chapter.id} 章</p>
+      <p className="text-emerald-400 text-xs uppercase tracking-wide">
+        {t('chapter.label', { id: chapter.id })}
+      </p>
       <h1 className="mt-1 font-semibold text-2xl">{chapter.title}</h1>
       <p className="mt-3 text-zinc-400 leading-relaxed">
         <FormattedText text={chapter.description} />
@@ -35,10 +39,10 @@ export function ChapterIndexPage() {
         {chapter.lessons.map((lesson, i) => {
           const progress = loadProgress(lesson.chapterId, lesson.id)
           const badge = progress?.completed
-            ? '完了'
+            ? t('status.completed')
             : progress && progress.completedSteps > 0
-              ? '進行中'
-              : '未着手'
+              ? t('status.in-progress')
+              : t('status.untouched')
           return (
             <li key={lesson.id}>
               <Link
@@ -47,7 +51,7 @@ export function ChapterIndexPage() {
               >
                 <div>
                   <p className="text-zinc-100">
-                    <span className="text-zinc-500">レッスン {i + 1}: </span>
+                    <span className="text-zinc-500">{t('lesson.label', { n: i + 1 })}</span>
                     {lesson.title}
                   </p>
                 </div>

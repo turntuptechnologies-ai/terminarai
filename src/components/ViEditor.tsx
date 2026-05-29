@@ -1,4 +1,5 @@
 import { type KeyboardEvent, useEffect, useRef, useState } from 'react'
+import { useLocale } from '../i18n'
 
 export type ViMode = 'normal' | 'insert' | 'command'
 
@@ -37,6 +38,7 @@ interface ViEditorProps {
  * - 保存パスは props.onSave / onClose を経由する (VFS 永続化は呼び出し側 = Terminal の責務)。
  */
 export function ViEditor({ display, initialContent, onSave, onClose }: ViEditorProps) {
+  const { t } = useLocale()
   const [buffer, setBuffer] = useState(initialContent)
   const [mode, setMode] = useState<ViMode>('normal')
   const [modified, setModified] = useState(false)
@@ -141,7 +143,7 @@ export function ViEditor({ display, initialContent, onSave, onClose }: ViEditorP
         {modified && (
           <span className="ml-2 text-amber-300">
             <span aria-hidden="true">[+]</span>
-            <span className="sr-only">未保存の変更あり</span>
+            <span className="sr-only">{t('vi.unsaved')}</span>
           </span>
         )}
       </header>
@@ -162,7 +164,7 @@ export function ViEditor({ display, initialContent, onSave, onClose }: ViEditorP
         autoComplete="off"
         autoCorrect="off"
         autoCapitalize="off"
-        aria-label="vi 編集領域"
+        aria-label={t('vi.editArea')}
         className="min-h-0 flex-1 resize-none bg-zinc-950 p-4 leading-relaxed text-zinc-100 caret-emerald-400 outline-none"
       />
 
@@ -184,7 +186,7 @@ export function ViEditor({ display, initialContent, onSave, onClose }: ViEditorP
               autoComplete="off"
               autoCorrect="off"
               autoCapitalize="off"
-              aria-label="vi コマンド入力"
+              aria-label={t('vi.cmdInput')}
               className="min-w-0 flex-1 border-none bg-transparent text-zinc-100 caret-emerald-400 outline-none"
             />
           </div>

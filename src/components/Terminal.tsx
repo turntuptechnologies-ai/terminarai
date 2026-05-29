@@ -1,4 +1,5 @@
 import { type FormEvent, type KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { useLocale } from '../i18n'
 import type { CommandContext, CommandResult, Shell } from '../shell'
 import { Prompt } from './Prompt'
 import { ViEditor } from './ViEditor'
@@ -37,6 +38,7 @@ interface EditorState {
 }
 
 export function Terminal({ shell, initialCtx, banner = '', onAfterExecute }: TerminalProps) {
+  const { t } = useLocale()
   // エントリ ID は React の key 安定性のためインスタンスローカルに管理する
   const idCounterRef = useRef(0)
   const nextEntryId = () => ++idCounterRef.current
@@ -245,11 +247,11 @@ export function Terminal({ shell, initialCtx, banner = '', onAfterExecute }: Ter
     <section
       ref={containerRef}
       onClick={focusInput}
-      aria-label="terminarai 仮想ターミナル"
+      aria-label={t('terminal.region')}
       className="h-full min-h-0 flex-1 overflow-y-auto bg-zinc-950 p-4 font-mono text-sm leading-relaxed text-zinc-100"
       data-testid="terminal-root"
     >
-      <div role="log" aria-live="polite" aria-label="ターミナル出力">
+      <div role="log" aria-live="polite" aria-label={t('terminal.output')}>
         {history.map((entry) => (
           <div key={entry.id}>
             {entry.prompt && (
@@ -286,7 +288,7 @@ export function Terminal({ shell, initialCtx, banner = '', onAfterExecute }: Ter
           autoCorrect="off"
           autoCapitalize="off"
           name="terminal-input"
-          aria-label="ターミナル入力"
+          aria-label={t('terminal.input')}
           className="min-w-0 flex-1 border-none bg-transparent text-zinc-100 caret-emerald-400 outline-none"
         />
       </form>

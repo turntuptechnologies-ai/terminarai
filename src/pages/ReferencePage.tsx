@@ -1,4 +1,5 @@
 import { PageShell } from '../components/PageShell'
+import { useLocale } from '../i18n'
 
 interface Example {
   cmd: string
@@ -269,13 +270,11 @@ function CommandCard({ entry }: { entry: CommandEntry }) {
 }
 
 export function ReferencePage() {
+  const { t } = useLocale()
   return (
     <PageShell>
-      <h1 className="font-semibold text-2xl">クイックリファレンス</h1>
-      <p className="mt-3 text-zinc-400 leading-relaxed">
-        terminarai で使えるコマンドと、シェルの基本的な機能の早見表です。
-        チュートリアル中に「これどう書くんだっけ」と思ったらここを開いてください。
-      </p>
+      <h1 className="font-semibold text-2xl">{t('reference.title')}</h1>
+      <p className="mt-3 text-zinc-400 leading-relaxed">{t('reference.intro')}</p>
 
       {SECTIONS.map((section) => (
         <section key={section.title} className="mt-8">
