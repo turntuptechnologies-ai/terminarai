@@ -5,6 +5,7 @@ import { CHAPTER_4 } from './content/chapter4'
 import { CHAPTER_5 } from './content/chapter5'
 import { CHAPTER_6 } from './content/chapter6'
 import { CHAPTER_7 } from './content/chapter7'
+import { CHAPTER_8 } from './content/chapter8'
 import type { Chapter, Lesson } from './types'
 
 /** 登録済みの全チャプタ。新しい章はここに追加していく。 */
@@ -16,6 +17,7 @@ export const CHAPTERS: Chapter[] = [
   CHAPTER_5,
   CHAPTER_6,
   CHAPTER_7,
+  CHAPTER_8,
 ]
 
 export function findLesson(chapterId: string, lessonId: string): Lesson | undefined {

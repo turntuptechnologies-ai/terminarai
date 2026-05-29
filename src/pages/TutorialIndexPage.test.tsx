@@ -44,8 +44,8 @@ describe('TutorialIndexPage', () => {
 
   it('未着手の章は「未着手 (0 / N)」バッジ', () => {
     renderPage()
-    // 5 レッスン構成の章 (1, 2, 3, 5, 7) は 5 つ。4 レッスン構成の章 (4, 6) は 2 つ
-    expect(screen.getAllByText(/未着手 \(0 \/ 5\)/).length).toBe(5)
+    // 5 レッスン構成の章 (1, 2, 3, 5, 7, 8) は 6 つ。4 レッスン構成の章 (4, 6) は 2 つ
+    expect(screen.getAllByText(/未着手 \(0 \/ 5\)/).length).toBe(6)
     expect(screen.getAllByText(/未着手 \(0 \/ 4\)/).length).toBe(2)
   })
 
