@@ -38,4 +38,23 @@ describe('FormattedText', () => {
     const { container } = render(<FormattedText text="" />)
     expect(container.textContent).toBe('')
   })
+
+  it('二重アスタリスク囲みは <strong> として描画 (** は残さない)', () => {
+    render(<FormattedText text="これは**重要**です" />)
+    const strong = document.querySelector('strong')
+    expect(strong?.textContent).toBe('重要')
+    expect(document.body.textContent).not.toContain('**')
+  })
+
+  it('code と bold が混在しても両方描画', () => {
+    render(<FormattedText text="`>` は**上書き**" />)
+    expect(document.querySelector('code')?.textContent).toBe('>')
+    expect(document.querySelector('strong')?.textContent).toBe('上書き')
+  })
+
+  it('閉じない ** は literal text 扱い', () => {
+    render(<FormattedText text="a ** b" />)
+    expect(document.querySelectorAll('strong').length).toBe(0)
+    expect(screen.getByText('a ** b')).toBeInTheDocument()
+  })
 })
