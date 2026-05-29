@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { loc } from '../i18n'
 import { CHAPTERS, findChapter, findLesson, findNextLesson } from './registry'
 
 describe('registry', () => {
@@ -14,31 +15,39 @@ describe('registry', () => {
   })
 
   it('findChapter で第1章を取得できる', () => {
-    expect(findChapter('1')?.title).toBe('ファイルシステムを覗く')
+    const t = findChapter('1')?.title
+    expect(t && loc(t, 'ja')).toBe('ファイルシステムを覗く')
+    expect(t && loc(t, 'en')).toBe('Exploring the filesystem')
   })
 
   it('findChapter で第2章を取得できる', () => {
-    expect(findChapter('2')?.title).toBe('ファイルの中身を扱う')
+    const t = findChapter('2')?.title
+    expect(t && loc(t, 'ja')).toBe('ファイルの中身を扱う')
   })
 
   it('findChapter で第3章を取得できる', () => {
-    expect(findChapter('3')?.title).toBe('ファイルとディレクトリを管理する')
+    const t = findChapter('3')?.title
+    expect(t && loc(t, 'ja')).toBe('ファイルとディレクトリを管理する')
   })
 
   it('findChapter で第4章を取得できる', () => {
-    expect(findChapter('4')?.title).toBe('パスの世界を歩く')
+    const t = findChapter('4')?.title
+    expect(t && loc(t, 'ja')).toBe('パスの世界を歩く')
   })
 
   it('findChapter で第5章を取得できる', () => {
-    expect(findChapter('5')?.title).toBe('ファイルを編集する')
+    const t = findChapter('5')?.title
+    expect(t && loc(t, 'ja')).toBe('ファイルを編集する')
   })
 
   it('findChapter で第6章を取得できる', () => {
-    expect(findChapter('6')?.title).toBe('ファイルの一部だけ見る')
+    const t = findChapter('6')?.title
+    expect(t && loc(t, 'ja')).toBe('ファイルの一部だけ見る')
   })
 
   it('findChapter で第7章を取得できる', () => {
-    expect(findChapter('7')?.title).toBe('テキストを検索する')
+    const t = findChapter('7')?.title
+    expect(t && loc(t, 'ja')).toBe('テキストを検索する')
   })
 
   it('findLesson でレッスン 1-1 を取得できる', () => {
