@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { PageShell } from '../components/PageShell'
-import { useLocale } from '../i18n'
+import { loc, useLocale } from '../i18n'
 import { type Difficulty, loadProgress, PROBLEMS } from '../lessons'
 import { toProblem } from '../routes'
 
@@ -11,7 +11,7 @@ const DIFFICULTY_CLASS: Record<Difficulty, string> = {
 }
 
 export function PracticeIndexPage() {
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
   return (
     <PageShell>
       <h1 className="font-semibold text-2xl">{t('practice.title')}</h1>
@@ -51,7 +51,7 @@ export function PracticeIndexPage() {
                   ))}
                   <span className={`ml-auto text-xs ${statusClass}`}>{status}</span>
                 </div>
-                <p className="mt-2 font-semibold text-zinc-100">{p.title}</p>
+                <p className="mt-2 font-semibold text-zinc-100">{loc(p.title, locale)}</p>
               </Link>
             </li>
           )

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useLocale } from '../i18n'
+import { loc, locList, useLocale } from '../i18n'
 import {
   type Difficulty,
   evaluateCheck,
@@ -50,7 +50,7 @@ const DIFFICULTY_CLASS: Record<Difficulty, string> = {
  * カスタムフックに切り出す。現状は意図的な重複。
  */
 export function PracticeView({ problem }: PracticeViewProps) {
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
   const [session, setSession] = useState<SessionState>(() => buildSession(problem))
   const [stepIndex, setStepIndex] = useState(0)
   const [completed, setCompleted] = useState(
@@ -117,6 +117,7 @@ export function PracticeView({ problem }: PracticeViewProps) {
   )
 
   const currentStep = problem.steps[stepIndex]
+  const hints = currentStep?.hints ? locList(currentStep.hints, locale) : []
   const initialCwd = problem.initialCwd ?? HOME_PATH
   const nextProblem = findNextProblem(problem.id)
 
@@ -128,11 +129,11 @@ export function PracticeView({ problem }: PracticeViewProps) {
             {t('practice.title')}
           </Link>
           <span className="mx-2 text-zinc-700">/</span>
-          <span className="text-zinc-400">{problem.title}</span>
+          <span className="text-zinc-400">{loc(problem.title, locale)}</span>
         </nav>
 
         <div className="mt-1 flex flex-wrap items-center gap-2">
-          <h1 className="font-semibold text-xl">{problem.title}</h1>
+          <h1 className="font-semibold text-xl">{loc(problem.title, locale)}</h1>
           <span
             className={`rounded border px-2 py-0.5 text-xs ${DIFFICULTY_CLASS[problem.difficulty]}`}
           >
@@ -149,7 +150,7 @@ export function PracticeView({ problem }: PracticeViewProps) {
         </div>
 
         <p className="mt-2 text-sm text-zinc-400">
-          <FormattedText text={problem.description} />
+          <FormattedText text={loc(problem.description, locale)} />
         </p>
 
         {completed && !retrying ? (
@@ -193,18 +194,13 @@ export function PracticeView({ problem }: PracticeViewProps) {
               </p>
             )}
             <p className="mt-1 text-zinc-100">
-              <FormattedText text={currentStep.instruction} />
+              <FormattedText text={loc(currentStep.instruction, locale)} />
             </p>
-            {currentStep.hints && currentStep.hints.length > 0 && (
+            {hints.length > 0 && (
               <HintReveal
-                hints={currentStep.hints}
+                hints={hints}
                 revealed={revealedHints}
-                onReveal={() => {
-                  // narrowing が closure 内で失われるためローカル const に退避
-                  const hs = currentStep.hints
-                  if (!hs) return
-                  setRevealedHints((n) => (n < hs.length ? n + 1 : 0))
-                }}
+                onReveal={() => setRevealedHints((n) => (n < hints.length ? n + 1 : 0))}
               />
             )}
           </div>
