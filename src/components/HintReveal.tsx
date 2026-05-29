@@ -2,7 +2,7 @@ import { useLocale } from '../i18n'
 import { FormattedText } from './FormattedText'
 
 interface HintRevealProps {
-  hints: string[]
+  hints: readonly string[]
   /** 開示済み件数 (0 = 未表示、N = 全部表示) */
   revealed: number
   /** クリック時の遷移は親が制御する (revealed < total なら +1、= total なら 0 に戻す) */

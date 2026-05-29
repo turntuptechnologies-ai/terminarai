@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { locList } from '../../i18n'
 import { createDefaultVfs } from '../../vfs'
 import { evaluateCheck } from '../engine'
 import type { EvalContext } from '../types'
@@ -43,9 +44,8 @@ describe('CHAPTER_1 構造', () => {
   it('全レッスンの全ステップに hints がある (初学者向け)', () => {
     for (const lesson of CHAPTER_1.lessons) {
       for (const step of lesson.steps) {
-        expect(step.hints && step.hints.length > 0, `${lesson.id} のヒントが未定義または空`).toBe(
-          true,
-        )
+        const hints = step.hints ? locList(step.hints, 'ja') : []
+        expect(hints.length > 0, `${lesson.id} のヒントが未定義または空`).toBe(true)
       }
     }
   })

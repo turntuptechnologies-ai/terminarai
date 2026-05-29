@@ -1,12 +1,12 @@
 import { Link, useParams } from 'react-router-dom'
 import { FormattedText } from '../components/FormattedText'
 import { PageShell } from '../components/PageShell'
-import { useLocale } from '../i18n'
+import { loc, useLocale } from '../i18n'
 import { findChapter, loadProgress } from '../lessons'
 import { PATHS, toLesson } from '../routes'
 
 export function ChapterIndexPage() {
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
   const { chapterId } = useParams<{ chapterId: string }>()
   const chapter = chapterId ? findChapter(chapterId) : undefined
 
@@ -30,9 +30,9 @@ export function ChapterIndexPage() {
       <p className="text-emerald-400 text-xs uppercase tracking-wide">
         {t('chapter.label', { id: chapter.id })}
       </p>
-      <h1 className="mt-1 font-semibold text-2xl">{chapter.title}</h1>
+      <h1 className="mt-1 font-semibold text-2xl">{loc(chapter.title, locale)}</h1>
       <p className="mt-3 text-zinc-400 leading-relaxed">
-        <FormattedText text={chapter.description} />
+        <FormattedText text={loc(chapter.description, locale)} />
       </p>
 
       <ol className="mt-8 space-y-3">
@@ -52,7 +52,7 @@ export function ChapterIndexPage() {
                 <div>
                   <p className="text-zinc-100">
                     <span className="text-zinc-500">{t('lesson.label', { n: i + 1 })}</span>
-                    {lesson.title}
+                    {loc(lesson.title, locale)}
                   </p>
                 </div>
                 <span className="rounded bg-zinc-800 px-2 py-0.5 text-xs text-zinc-400">

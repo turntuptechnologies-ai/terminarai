@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { FormattedText } from '../components/FormattedText'
 import { PageShell } from '../components/PageShell'
-import { useLocale } from '../i18n'
+import { loc, useLocale } from '../i18n'
 import { CHAPTERS, type ChapterStatus, computeChapterProgress } from '../lessons'
 import { toChapter } from '../routes'
 
@@ -12,7 +12,7 @@ const STATUS_CLASS: Record<ChapterStatus, string> = {
 }
 
 export function TutorialIndexPage() {
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
   return (
     <PageShell>
       <h1 className="font-semibold text-2xl">{t('tutorial.title')}</h1>
@@ -35,9 +35,9 @@ export function TutorialIndexPage() {
                   <p className="text-emerald-400 text-xs uppercase tracking-wide">
                     {t('chapter.label', { id: ch.id })}
                   </p>
-                  <h2 className="mt-1 font-semibold text-zinc-100">{ch.title}</h2>
+                  <h2 className="mt-1 font-semibold text-zinc-100">{loc(ch.title, locale)}</h2>
                   <p className="mt-2 text-sm text-zinc-400 leading-relaxed">
-                    <FormattedText text={ch.description} />
+                    <FormattedText text={loc(ch.description, locale)} />
                   </p>
                   <div className="mt-3 flex items-center justify-between text-xs">
                     <span className="text-zinc-500">

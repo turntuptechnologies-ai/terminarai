@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useLocale } from '../i18n'
+import { loc, locList, useLocale } from '../i18n'
 import { evaluateCheck, findNextLesson, type Lesson, loadProgress, saveProgress } from '../lessons'
 import { PATHS, toChapter, toLesson } from '../routes'
 import { type CommandContext, type CommandResult, createShell, defaultContext } from '../shell'
@@ -39,7 +39,7 @@ function buildSession(lesson: Lesson): SessionState {
  * - 1 コマンド = 最大 1 ステップ進行 (EvalContext の JSDoc 参照)
  */
 export function LessonView({ lesson, onComplete }: LessonViewProps) {
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
   const [session, setSession] = useState<SessionState>(() => buildSession(lesson))
   const [stepIndex, setStepIndex] = useState(0)
   const [completed, setCompleted] = useState(
@@ -109,6 +109,7 @@ export function LessonView({ lesson, onComplete }: LessonViewProps) {
   )
 
   const currentStep = lesson.steps[stepIndex]
+  const hints = currentStep?.hints ? locList(currentStep.hints, locale) : []
   const initialCwd = lesson.initialCwd ?? HOME_PATH
   const nextLesson = findNextLesson(lesson.chapterId, lesson.id)
 
@@ -124,12 +125,12 @@ export function LessonView({ lesson, onComplete }: LessonViewProps) {
             {t('chapter.label', { id: lesson.chapterId })}
           </Link>
           <span className="mx-2 text-zinc-700">/</span>
-          <span className="text-zinc-400">{lesson.title}</span>
+          <span className="text-zinc-400">{loc(lesson.title, locale)}</span>
         </nav>
 
-        <h1 className="mt-1 font-semibold text-xl">{lesson.title}</h1>
+        <h1 className="mt-1 font-semibold text-xl">{loc(lesson.title, locale)}</h1>
         <p className="mt-2 text-sm text-zinc-400">
-          <FormattedText text={lesson.description} />
+          <FormattedText text={loc(lesson.description, locale)} />
         </p>
 
         {completed && !retrying ? (
@@ -178,18 +179,13 @@ export function LessonView({ lesson, onComplete }: LessonViewProps) {
               {t('step.label', { current: stepIndex + 1, total: lesson.steps.length })}
             </p>
             <p className="mt-1 text-zinc-100">
-              <FormattedText text={currentStep.instruction} />
+              <FormattedText text={loc(currentStep.instruction, locale)} />
             </p>
-            {currentStep.hints && currentStep.hints.length > 0 && (
+            {hints.length > 0 && (
               <HintReveal
-                hints={currentStep.hints}
+                hints={hints}
                 revealed={revealedHints}
-                onReveal={() => {
-                  // narrowing が closure 内で失われるためローカル const に退避
-                  const hs = currentStep.hints
-                  if (!hs) return
-                  setRevealedHints((n) => (n < hs.length ? n + 1 : 0))
-                }}
+                onReveal={() => setRevealedHints((n) => (n < hints.length ? n + 1 : 0))}
               />
             )}
           </div>

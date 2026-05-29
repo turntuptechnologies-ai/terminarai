@@ -1,3 +1,4 @@
+import type { LocalizedList, LocalizedText } from '../i18n'
 import type { Vfs, VfsDirectory } from '../vfs'
 
 export type Check =
@@ -26,7 +27,7 @@ export type Check =
   | { kind: 'not'; check: Check }
 
 export interface Step {
-  instruction: string
+  instruction: LocalizedText
   /**
    * 多段ヒント (空配列・未指定はヒントなし)。
    *
@@ -34,7 +35,7 @@ export interface Step {
    * 学習者には「最初は考え方、次に具体例」と段階的に支援できる。
    * 単一ヒントしか持たないステップは `['...']` のように 1 要素配列で書く。
    */
-  hints?: string[]
+  hints?: LocalizedList
   check: Check
 }
 
@@ -49,9 +50,9 @@ export type Difficulty = 'easy' | 'medium' | 'hard'
 export interface Problem {
   /** 一意 ID (例: 'p1', 'p2') */
   id: string
-  title: string
+  title: LocalizedText
   /** 問題文 */
-  description: string
+  description: LocalizedText
   difficulty: Difficulty
   /** この問題で扱うコマンド名 (UI バッジ用) */
   tags: string[]
@@ -70,8 +71,8 @@ export interface Lesson {
    */
   id: string
   chapterId: string
-  title: string
-  description: string
+  title: LocalizedText
+  description: LocalizedText
   /** 省略時は createDefaultVfs() の初期 FS を使う。LessonView 側で structuredClone される。 */
   initialFs?: VfsDirectory
   /** 省略時は HOME_PATH (/home/user)。 */
@@ -81,8 +82,8 @@ export interface Lesson {
 
 export interface Chapter {
   id: string
-  title: string
-  description: string
+  title: LocalizedText
+  description: LocalizedText
   lessons: Lesson[]
 }
 
