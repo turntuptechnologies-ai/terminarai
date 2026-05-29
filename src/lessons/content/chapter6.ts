@@ -50,22 +50,31 @@ function initialFsWithLog(): VfsDirectory {
  */
 export const CHAPTER_6: Chapter = {
   id: '6',
-  title: 'ファイルの一部だけ見る',
-  description:
-    '`head` と `tail` でファイルの先頭・末尾だけを取り出して見ます。長いログを眺めるときの定番ワザです。',
+  title: { ja: 'ファイルの一部だけ見る', en: 'View just part of a file' },
+  description: {
+    ja: '`head` と `tail` でファイルの先頭・末尾だけを取り出して見ます。長いログを眺めるときの定番ワザです。',
+    en: 'Use `head` and `tail` to view just the beginning or end of a file. A classic trick for skimming long logs.',
+  },
   lessons: [
     {
       id: '6-1',
       chapterId: '6',
-      title: '先頭から覗く (head)',
-      description:
-        '`head <ファイル>` でファイルの**先頭 10 行**を表示できます。長いログの「最初の方」だけ見たいときに便利です。',
+      title: { ja: '先頭から覗く (head)', en: 'Peek from the top (head)' },
+      description: {
+        ja: '`head <ファイル>` でファイルの**先頭 10 行**を表示できます。長いログの「最初の方」だけ見たいときに便利です。',
+        en: '`head <file>` shows the **first 10 lines** of a file. Handy when you only want the "beginning" of a long log.',
+      },
       initialFs: initialFsWithLog(),
       steps: [
         {
-          instruction:
-            '`head log.txt` で `log.txt` の先頭 10 行を見てみましょう。15 行のうち最初の 10 行 (line01〜line10) が出ます。',
-          hints: ['`head <ファイル名>` で先頭 10 行が表示されます。', '`head log.txt` と入力。'],
+          instruction: {
+            ja: '`head log.txt` で `log.txt` の先頭 10 行を見てみましょう。15 行のうち最初の 10 行 (line01〜line10) が出ます。',
+            en: 'Use `head log.txt` to view the first 10 lines of `log.txt`. Of the 15 lines, the first 10 (line01–line10) appear.',
+          },
+          hints: {
+            ja: ['`head <ファイル名>` で先頭 10 行が表示されます。', '`head log.txt` と入力。'],
+            en: ['`head <filename>` shows the first 10 lines.', 'Type `head log.txt`.'],
+          },
           check: {
             kind: 'and',
             checks: [
@@ -79,14 +88,22 @@ export const CHAPTER_6: Chapter = {
     {
       id: '6-2',
       chapterId: '6',
-      title: '末尾から覗く (tail)',
-      description:
-        '`tail <ファイル>` は逆に**末尾 10 行**を表示します。新しく追加されたログをチェックするときの定番です。',
+      title: { ja: '末尾から覗く (tail)', en: 'Peek from the bottom (tail)' },
+      description: {
+        ja: '`tail <ファイル>` は逆に**末尾 10 行**を表示します。新しく追加されたログをチェックするときの定番です。',
+        en: '`tail <file>` instead shows the **last 10 lines**. A staple for checking newly added log entries.',
+      },
       initialFs: initialFsWithLog(),
       steps: [
         {
-          instruction: '`tail log.txt` で末尾 10 行 (line06〜line15) を見てみましょう。',
-          hints: ['`tail <ファイル名>` で末尾 10 行。', '`tail log.txt` と入力。'],
+          instruction: {
+            ja: '`tail log.txt` で末尾 10 行 (line06〜line15) を見てみましょう。',
+            en: 'Use `tail log.txt` to view the last 10 lines (line06–line15).',
+          },
+          hints: {
+            ja: ['`tail <ファイル名>` で末尾 10 行。', '`tail log.txt` と入力。'],
+            en: ['`tail <filename>` shows the last 10 lines.', 'Type `tail log.txt`.'],
+          },
           check: {
             kind: 'and',
             checks: [
@@ -100,17 +117,28 @@ export const CHAPTER_6: Chapter = {
     {
       id: '6-3',
       chapterId: '6',
-      title: '行数を指定する (-n)',
-      description:
-        '`-n N` (または `-N` の短縮形) で表示行数を変えられます。`head -n 3` なら先頭 3 行、`tail -n 3` なら末尾 3 行。',
+      title: { ja: '行数を指定する (-n)', en: 'Specify the number of lines (-n)' },
+      description: {
+        ja: '`-n N` (または `-N` の短縮形) で表示行数を変えられます。`head -n 3` なら先頭 3 行、`tail -n 3` なら末尾 3 行。',
+        en: 'Use `-n N` (or the short form `-N`) to change how many lines show. `head -n 3` shows the first 3 lines, `tail -n 3` the last 3.',
+      },
       initialFs: initialFsWithLog(),
       steps: [
         {
-          instruction: '`head -n 3 log.txt` で **先頭 3 行** (line01〜line03) を見てみましょう。',
-          hints: [
-            '`-n 3` で行数指定。空白あり/なし、`--lines=3`、`-3` の短縮形どれでも OK。',
-            '`head -n 3 log.txt` と入力。',
-          ],
+          instruction: {
+            ja: '`head -n 3 log.txt` で **先頭 3 行** (line01〜line03) を見てみましょう。',
+            en: 'Use `head -n 3 log.txt` to view the **first 3 lines** (line01–line03).',
+          },
+          hints: {
+            ja: [
+              '`-n 3` で行数指定。空白あり/なし、`--lines=3`、`-3` の短縮形どれでも OK。',
+              '`head -n 3 log.txt` と入力。',
+            ],
+            en: [
+              '`-n 3` sets the line count. With or without a space, `--lines=3`, or the short `-3` all work.',
+              'Type `head -n 3 log.txt`.',
+            ],
+          },
           check: {
             kind: 'and',
             checks: [
@@ -124,9 +152,14 @@ export const CHAPTER_6: Chapter = {
           },
         },
         {
-          instruction:
-            '次に `tail -n 3 log.txt` で **末尾 3 行** (line13〜line15) も見てみましょう。',
-          hints: ['`tail -n 3 log.txt` と入力。'],
+          instruction: {
+            ja: '次に `tail -n 3 log.txt` で **末尾 3 行** (line13〜line15) も見てみましょう。',
+            en: 'Next, use `tail -n 3 log.txt` to view the **last 3 lines** (line13–line15) too.',
+          },
+          hints: {
+            ja: ['`tail -n 3 log.txt` と入力。'],
+            en: ['Type `tail -n 3 log.txt`.'],
+          },
           check: {
             kind: 'and',
             checks: [
@@ -144,14 +177,25 @@ export const CHAPTER_6: Chapter = {
     {
       id: '6-4',
       chapterId: '6',
-      title: '練習: 先頭と末尾だけサッと確認する',
-      description:
-        '長いログを「最初の数行」と「最後の数行」だけ眺めるパターンを練習します。先頭 5 行と末尾 5 行を立て続けに確認しましょう。',
+      title: {
+        ja: '練習: 先頭と末尾だけサッと確認する',
+        en: 'Practice: quickly check just the top and bottom',
+      },
+      description: {
+        ja: '長いログを「最初の数行」と「最後の数行」だけ眺めるパターンを練習します。先頭 5 行と末尾 5 行を立て続けに確認しましょう。',
+        en: 'Practice the pattern of skimming just the "first few lines" and "last few lines" of a long log. Check the first 5 and the last 5 in a row.',
+      },
       initialFs: initialFsWithLog(),
       steps: [
         {
-          instruction: 'まず `head -n 5 log.txt` で先頭 5 行を表示してください。',
-          hints: ['`head -n 5 log.txt` と入力。`-5` や `--lines=5` でも OK。'],
+          instruction: {
+            ja: 'まず `head -n 5 log.txt` で先頭 5 行を表示してください。',
+            en: 'First show the first 5 lines with `head -n 5 log.txt`.',
+          },
+          hints: {
+            ja: ['`head -n 5 log.txt` と入力。`-5` や `--lines=5` でも OK。'],
+            en: ['Type `head -n 5 log.txt`. `-5` or `--lines=5` also work.'],
+          },
           check: {
             kind: 'and',
             checks: [
@@ -165,8 +209,14 @@ export const CHAPTER_6: Chapter = {
           },
         },
         {
-          instruction: '次に `tail -n 5 log.txt` で末尾 5 行を表示してください。',
-          hints: ['`tail -n 5 log.txt` と入力。'],
+          instruction: {
+            ja: '次に `tail -n 5 log.txt` で末尾 5 行を表示してください。',
+            en: 'Next show the last 5 lines with `tail -n 5 log.txt`.',
+          },
+          hints: {
+            ja: ['`tail -n 5 log.txt` と入力。'],
+            en: ['Type `tail -n 5 log.txt`.'],
+          },
           check: {
             kind: 'and',
             checks: [
