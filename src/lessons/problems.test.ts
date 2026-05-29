@@ -21,7 +21,7 @@ function vfsForProblem(id: string): Vfs {
 }
 
 describe('PROBLEMS', () => {
-  it('14 問の構成 (p1-p14)', () => {
+  it('16 問の構成 (p1-p16)', () => {
     expect(PROBLEMS.map((p) => p.id)).toEqual([
       'p1',
       'p2',
@@ -37,6 +37,8 @@ describe('PROBLEMS', () => {
       'p12',
       'p13',
       'p14',
+      'p15',
+      'p16',
     ])
   })
 
@@ -53,7 +55,7 @@ describe('PROBLEMS', () => {
   it('findProblem', () => {
     expect(findProblem('p1')?.id).toBe('p1')
     expect(findProblem('p9')?.id).toBe('p9')
-    expect(findProblem('p14')?.id).toBe('p14')
+    expect(findProblem('p16')?.id).toBe('p16')
     expect(findProblem('nope')).toBeUndefined()
   })
 
@@ -62,8 +64,9 @@ describe('PROBLEMS', () => {
     expect(findNextProblem('p5')?.id).toBe('p6')
     expect(findNextProblem('p8')?.id).toBe('p9')
     expect(findNextProblem('p9')?.id).toBe('p10')
-    expect(findNextProblem('p13')?.id).toBe('p14')
-    expect(findNextProblem('p14')).toBeUndefined()
+    expect(findNextProblem('p14')?.id).toBe('p15')
+    expect(findNextProblem('p15')?.id).toBe('p16')
+    expect(findNextProblem('p16')).toBeUndefined()
     expect(findNextProblem('nope')).toBeUndefined()
   })
 })
@@ -341,6 +344,76 @@ describe('PROBLEMS check 動作確認', () => {
       expect(
         evaluateCheck(p.steps[0].check, ctxFor({ lastCommand: 'cat a.txt b.txt c.txt' })),
       ).toBe(false)
+    })
+  })
+
+  describe('p15: ログ調査ワークフロー (hard)', () => {
+    const p = findProblem('p15') as NonNullable<ReturnType<typeof findProblem>>
+
+    it('hard 難易度', () => {
+      expect(p.difficulty).toBe('hard')
+    })
+
+    it('step1: grep -n ERROR app.log でクリア', () => {
+      expect(
+        evaluateCheck(p.steps[0].check, ctxFor({ lastCommand: 'grep -n ERROR app.log' })),
+      ).toBe(true)
+    })
+
+    it('step1: -n 無しではクリアしない', () => {
+      expect(evaluateCheck(p.steps[0].check, ctxFor({ lastCommand: 'grep ERROR app.log' }))).toBe(
+        false,
+      )
+    })
+
+    it('step2: tail -n 5 app.log でクリア', () => {
+      expect(evaluateCheck(p.steps[1].check, ctxFor({ lastCommand: 'tail -n 5 app.log' }))).toBe(
+        true,
+      )
+    })
+
+    it('step3: grep -v INFO app.log でクリア', () => {
+      expect(evaluateCheck(p.steps[2].check, ctxFor({ lastCommand: 'grep -v INFO app.log' }))).toBe(
+        true,
+      )
+    })
+  })
+
+  describe('p16: バックアップして上書き (hard)', () => {
+    const p = findProblem('p16') as NonNullable<ReturnType<typeof findProblem>>
+
+    it('hard 難易度', () => {
+      expect(p.difficulty).toBe('hard')
+    })
+
+    it('step1: config.bak に原本の内容があればクリア (cp 済み)', () => {
+      const vfs = vfsForProblem('p16')
+      expect(evaluateCheck(p.steps[0].check, ctxFor({ vfs }))).toBe(false)
+      vfs.copy('/home/user/config.txt', '/home/user/config.bak')
+      expect(evaluateCheck(p.steps[0].check, ctxFor({ vfs }))).toBe(true)
+    })
+
+    it('step2: > で上書きし mode=dev が消えたらクリア', () => {
+      const vfs = vfsForProblem('p16')
+      vfs.copy('/home/user/config.txt', '/home/user/config.bak')
+      vfs.writeFile('/home/user/config.txt', 'mode=prod\n')
+      expect(evaluateCheck(p.steps[1].check, ctxFor({ vfs }))).toBe(true)
+    })
+
+    it('step2: mode=dev が残っているとクリアしない (上書き必須)', () => {
+      const vfs = vfsForProblem('p16')
+      // >> で追記すると mode=dev が残る → NG
+      vfs.writeFile('/home/user/config.txt', 'mode=dev\nport=3000\nmode=prod\n')
+      expect(evaluateCheck(p.steps[1].check, ctxFor({ vfs }))).toBe(false)
+    })
+
+    it('step3: バックアップに mode=dev が残り cat config.bak したらクリア', () => {
+      const vfs = vfsForProblem('p16')
+      vfs.copy('/home/user/config.txt', '/home/user/config.bak')
+      vfs.writeFile('/home/user/config.txt', 'mode=prod\n')
+      expect(evaluateCheck(p.steps[2].check, ctxFor({ vfs, lastCommand: 'cat config.bak' }))).toBe(
+        true,
+      )
     })
   })
 })
