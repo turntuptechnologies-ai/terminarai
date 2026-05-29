@@ -90,6 +90,10 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'reference.title': 'クイックリファレンス',
     'reference.intro':
       'terminarai で使えるコマンドと、シェルの基本的な機能の早見表です。チュートリアル中に「これどう書くんだっけ」と思ったらここを開いてください。',
+    'reference.shellFeaturesTitle': 'シェルの機能',
+    'reference.unsupportedTitle': '未対応の機能',
+    'reference.unsupportedIntro':
+      '以下は本物の Linux にはあるが、terminarai では未実装です (将来追加予定)。',
     // 404
     'notFound.title': 'ページが見つかりません',
     'notFound.desc': '指定されたパスは存在しないようです。',
@@ -176,6 +180,10 @@ export const MESSAGES: Record<Locale, Record<string, string>> = {
     'reference.title': 'Quick Reference',
     'reference.intro':
       'A cheat sheet of the commands available in terminarai and the basic shell features. Open this whenever you think "how do I write this again?" during a lesson.',
+    'reference.shellFeaturesTitle': 'Shell features',
+    'reference.unsupportedTitle': 'Unsupported features',
+    'reference.unsupportedIntro':
+      'The following exist in real Linux but are not implemented in terminarai yet (planned for the future).',
     // 404
     'notFound.title': 'Page not found',
     'notFound.desc': 'The requested path does not seem to exist.',
