@@ -1,5 +1,6 @@
 import type { CommandHandler } from '../types'
 import { invalidOptionError, parseArgs } from './parse-args'
+import { hasNestedRepetition, MAX_PATTERN_LENGTH } from './regex-safety'
 
 /**
  * grep — ファイル内をパターン (正規表現) で行マッチ検索する。
@@ -21,9 +22,12 @@ import { invalidOptionError, parseArgs } from './parse-args'
  * - 2: パターン不正 / ファイル不在 / 引数不足 / その他
  *
  * セキュリティメモ:
- * - ユーザ入力 PATTERN を `new RegExp()` に直接渡す。学習用アプリなので
- *   ReDoS への積極的な防御 (Web Worker / timeout) はかけない。
- *   不正パターンは try/catch で受けて exit 2 を返す。
+ * - ユーザ入力 PATTERN を `new RegExp()` に渡す前に、ReDoS 緩和として
+ *   静的チェックを行う (regex-safety.ts 参照): パターン長の上限と、
+ *   `(a+)+` のようなネストした無限 repetition の拒否 (exit 2)。
+ *   シェルが同期実行のため Web Worker / timeout による打ち切りは使えず、
+ *   ヒューリスティックによる事故防止に留まる。
+ * - 不正パターンは try/catch で受けて exit 2 を返す。
  */
 export const grep: CommandHandler = (args, ctx, vfs) => {
   const parsed = parseArgs(args, {
@@ -59,6 +63,14 @@ export const grep: CommandHandler = (args, ctx, vfs) => {
   const showLineNumbers = parsed.flags.has('n')
   const invertMatch = parsed.flags.has('v')
 
+  if (pattern.length > MAX_PATTERN_LENGTH) {
+    return {
+      stdout: '',
+      stderr: `grep: pattern is too long (max ${MAX_PATTERN_LENGTH} characters)\n`,
+      exitCode: 2,
+    }
+  }
+
   let re: RegExp
   try {
     re = new RegExp(pattern, ignoreCase ? 'i' : '')
@@ -67,6 +79,15 @@ export const grep: CommandHandler = (args, ctx, vfs) => {
     return {
       stdout: '',
       stderr: `grep: invalid pattern: ${msg}\n`,
+      exitCode: 2,
+    }
+  }
+
+  // 妥当性検証 (new RegExp) の後に複雑度チェック。構築だけならマッチは走らないので安全
+  if (hasNestedRepetition(pattern)) {
+    return {
+      stdout: '',
+      stderr: `grep: unsupported pattern: nested repetition (like '(a+)+') may hang the browser\n`,
       exitCode: 2,
     }
   }

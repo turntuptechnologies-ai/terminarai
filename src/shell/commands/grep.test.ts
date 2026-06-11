@@ -167,4 +167,24 @@ describe('grep', () => {
     expect(r.exitCode).toBe(2)
     expect(r.stderr).toContain('unrecognized option')
   })
+
+  // ReDoS 緩和 (regex-safety.ts)。検出ロジック自体の網羅は regex-safety.test.ts 参照
+  it('ネストした無限 repetition のパターンは exit 2', () => {
+    const r = grep(['(a+)+b', 'access.log'], defaultContext('/home/user'), vfs)
+    expect(r.exitCode).toBe(2)
+    expect(r.stderr).toContain('nested repetition')
+    expect(r.stdout).toBe('')
+  })
+
+  it('長すぎるパターンは exit 2', () => {
+    const r = grep(['a'.repeat(257), 'access.log'], defaultContext('/home/user'), vfs)
+    expect(r.exitCode).toBe(2)
+    expect(r.stderr).toContain('too long')
+  })
+
+  it('通常の繰り返しを含むパターンは従来どおり動く', () => {
+    const r = grep(['ERR.*full', 'access.log'], defaultContext('/home/user'), vfs)
+    expect(r.exitCode).toBe(0)
+    expect(r.stdout).toContain('disk full')
+  })
 })
