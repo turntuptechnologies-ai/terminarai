@@ -1,37 +1,15 @@
-import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { loc, locList, useLocale } from '../i18n'
-import {
-  type Difficulty,
-  evaluateCheck,
-  findNextProblem,
-  loadProgress,
-  type Problem,
-  saveProgress,
-} from '../lessons'
+import { type Difficulty, findNextProblem, type Problem } from '../lessons'
 import { PATHS, toProblem } from '../routes'
-import { type CommandContext, type CommandResult, createShell, defaultContext } from '../shell'
-import { registerAllCommands } from '../shell/commands'
-import { createDefaultVfs, createVfs, HOME_PATH, type Vfs } from '../vfs'
+import { defaultContext } from '../shell'
 import { FormattedText } from './FormattedText'
 import { HintReveal } from './HintReveal'
 import { Terminal } from './Terminal'
+import { useGuidedSession } from './useGuidedSession'
 
 interface PracticeViewProps {
   problem: Problem
-}
-
-interface SessionState {
-  vfs: Vfs
-  shell: ReturnType<typeof createShell>
-}
-
-function buildSession(problem: Problem): SessionState {
-  const initial = problem.initialFs ? structuredClone(problem.initialFs) : undefined
-  const vfs = initial ? createVfs(initial) : createDefaultVfs()
-  const shell = createShell(vfs)
-  registerAllCommands(shell)
-  return { vfs, shell }
 }
 
 const DIFFICULTY_CLASS: Record<Difficulty, string> = {
@@ -43,82 +21,27 @@ const DIFFICULTY_CLASS: Record<Difficulty, string> = {
 /**
  * 自習問題ビュー。
  *
- * LessonView と似た構造を持つが、問題文・難易度バッジ・タグ表示が違う。
+ * セッション管理 (VFS / ステップ進行 / 進捗保存 / 再挑戦) は useGuidedSession に委譲し、
+ * ここでは問題固有の表示 (難易度バッジ・タグ・次の問題導線) だけを持つ。
  * 進捗は loadProgress('practice', problem.id) で保存 (Lesson と同じ仕組みを流用)。
- *
- * TODO (followup): LessonView と共通のセッション管理ロジックを useGuidedSession 等の
- * カスタムフックに切り出す。現状は意図的な重複。
  */
 export function PracticeView({ problem }: PracticeViewProps) {
   const { t, locale } = useLocale()
-  const [session, setSession] = useState<SessionState>(() => buildSession(problem))
-  const [stepIndex, setStepIndex] = useState(0)
-  const [completed, setCompleted] = useState(
-    () => loadProgress('practice', problem.id)?.completed ?? false,
-  )
-  const [revealedHints, setRevealedHints] = useState(0)
-  // 解答済みの問題を「もう一度挑戦」でガイド付きに解き直している最中か。
-  // completed (= localStorage の記録) は保持したまま、表示と判定だけ一時的に再開する。
-  const [retrying, setRetrying] = useState(false)
-  // 再挑戦のたびに増やし、Terminal の key に混ぜて再 mount (履歴・FS をリセット) させる。
-  const [attempt, setAttempt] = useState(0)
+  const {
+    session,
+    stepIndex,
+    completed,
+    retrying,
+    revealedHints,
+    setRevealedHints,
+    currentStep,
+    initialCwd,
+    terminalKey,
+    handleRetry,
+    handleAfterExecute,
+  } = useGuidedSession('practice', problem)
 
-  useEffect(() => {
-    setSession(buildSession(problem))
-    setStepIndex(0)
-    setCompleted(loadProgress('practice', problem.id)?.completed ?? false)
-    setRevealedHints(0)
-    setRetrying(false)
-  }, [problem])
-
-  // 解答済みの問題を初期状態に戻して解き直す (記録は消さない)。
-  const handleRetry = useCallback(() => {
-    setSession(buildSession(problem))
-    setStepIndex(0)
-    setRevealedHints(0)
-    setRetrying(true)
-    setAttempt((n) => n + 1)
-  }, [problem])
-
-  const handleAfterExecute = useCallback(
-    (input: string, _result: CommandResult, ctxAfter: CommandContext) => {
-      // 解答済みかつ再挑戦中でなければ判定しない (再挑戦中はガイドを再開しているので判定する)
-      if (completed && !retrying) return
-      const step = problem.steps[stepIndex]
-      if (!step) return
-      const passed = evaluateCheck(step.check, {
-        vfs: session.vfs,
-        cwd: ctxAfter.cwd,
-        lastCommand: input,
-      })
-      if (!passed) return
-
-      const nextIndex = stepIndex + 1
-      const now = Date.now()
-      if (nextIndex >= problem.steps.length) {
-        setCompleted(true)
-        setRetrying(false)
-        saveProgress('practice', problem.id, {
-          completedSteps: problem.steps.length,
-          completed: true,
-          updatedAt: now,
-        })
-      } else {
-        setStepIndex(nextIndex)
-        setRevealedHints(0)
-        saveProgress('practice', problem.id, {
-          completedSteps: nextIndex,
-          completed: false,
-          updatedAt: now,
-        })
-      }
-    },
-    [completed, retrying, problem, stepIndex, session.vfs],
-  )
-
-  const currentStep = problem.steps[stepIndex]
   const hints = currentStep?.hints ? locList(currentStep.hints, locale) : []
-  const initialCwd = problem.initialCwd ?? HOME_PATH
   const nextProblem = findNextProblem(problem.id)
 
   return (
@@ -209,7 +132,7 @@ export function PracticeView({ problem }: PracticeViewProps) {
 
       <div className="flex min-h-0 flex-1">
         <Terminal
-          key={`practice/${problem.id}/${attempt}`}
+          key={terminalKey}
           shell={session.shell}
           initialCtx={defaultContext(initialCwd)}
           onAfterExecute={handleAfterExecute}

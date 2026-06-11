@@ -1,14 +1,12 @@
-import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { loc, locList, useLocale } from '../i18n'
-import { evaluateCheck, findNextLesson, type Lesson, loadProgress, saveProgress } from '../lessons'
+import { findNextLesson, type Lesson } from '../lessons'
 import { PATHS, toChapter, toLesson } from '../routes'
-import { type CommandContext, type CommandResult, createShell, defaultContext } from '../shell'
-import { registerAllCommands } from '../shell/commands'
-import { createDefaultVfs, createVfs, HOME_PATH, type Vfs } from '../vfs'
+import { defaultContext } from '../shell'
 import { FormattedText } from './FormattedText'
 import { HintReveal } from './HintReveal'
 import { Terminal } from './Terminal'
+import { useGuidedSession } from './useGuidedSession'
 
 interface LessonViewProps {
   lesson: Lesson
@@ -16,101 +14,29 @@ interface LessonViewProps {
   onComplete?: () => void
 }
 
-interface SessionState {
-  vfs: Vfs
-  shell: ReturnType<typeof createShell>
-}
-
-function buildSession(lesson: Lesson): SessionState {
-  // initialFs を渡し回しても汚染しないよう、必ず deep clone してから VFS を作る
-  const initial = lesson.initialFs ? structuredClone(lesson.initialFs) : undefined
-  const vfs = initial ? createVfs(initial) : createDefaultVfs()
-  const shell = createShell(vfs)
-  registerAllCommands(shell)
-  return { vfs, shell }
-}
-
 /**
  * レッスン本体を描画するコンポーネント。
  *
- * 状態の扱い:
- * - 再訪時は VFS / step を毎回 fresh (一貫した再現性のため)
- * - 完了済み判定だけは localStorage から復元 (一覧バッジと UI が乖離しないように)
- * - 1 コマンド = 最大 1 ステップ進行 (EvalContext の JSDoc 参照)
+ * セッション管理 (VFS / ステップ進行 / 進捗保存 / 再挑戦) は useGuidedSession に委譲し、
+ * ここではレッスン固有の表示 (パンくず・完了バナー・次レッスン導線) だけを持つ。
  */
 export function LessonView({ lesson, onComplete }: LessonViewProps) {
   const { t, locale } = useLocale()
-  const [session, setSession] = useState<SessionState>(() => buildSession(lesson))
-  const [stepIndex, setStepIndex] = useState(0)
-  const [completed, setCompleted] = useState(
-    () => loadProgress(lesson.chapterId, lesson.id)?.completed ?? false,
-  )
-  // 多段ヒント: 0=未表示、1..N=N 番目までを順次開示
-  const [revealedHints, setRevealedHints] = useState(0)
-  // 完了済みレッスンを「もう一度挑戦」でガイド付きに解き直している最中か。
-  // completed (= localStorage の記録) は保持したまま、表示と判定だけ一時的に再開する。
-  const [retrying, setRetrying] = useState(false)
-  // 再挑戦のたびに増やし、Terminal の key に混ぜて再 mount (履歴・FS をリセット) させる。
-  const [attempt, setAttempt] = useState(0)
+  const {
+    session,
+    stepIndex,
+    completed,
+    retrying,
+    revealedHints,
+    setRevealedHints,
+    currentStep,
+    initialCwd,
+    terminalKey,
+    handleRetry,
+    handleAfterExecute,
+  } = useGuidedSession(lesson.chapterId, lesson, onComplete)
 
-  // レッスン (lesson.id) が切り替わったら state を全リセット
-  useEffect(() => {
-    setSession(buildSession(lesson))
-    setStepIndex(0)
-    setCompleted(loadProgress(lesson.chapterId, lesson.id)?.completed ?? false)
-    setRevealedHints(0)
-    setRetrying(false)
-  }, [lesson.id, lesson.chapterId, lesson])
-
-  // 完了済みレッスンを初期状態に戻して解き直す (記録は消さない)。
-  const handleRetry = useCallback(() => {
-    setSession(buildSession(lesson))
-    setStepIndex(0)
-    setRevealedHints(0)
-    setRetrying(true)
-    setAttempt((n) => n + 1)
-  }, [lesson])
-
-  const handleAfterExecute = useCallback(
-    (input: string, _result: CommandResult, ctxAfter: CommandContext) => {
-      // 完了済みかつ再挑戦中でなければ判定しない (再挑戦中はガイドを再開しているので判定する)
-      if (completed && !retrying) return
-      const step = lesson.steps[stepIndex]
-      if (!step) return
-      const passed = evaluateCheck(step.check, {
-        vfs: session.vfs,
-        cwd: ctxAfter.cwd,
-        lastCommand: input,
-      })
-      if (!passed) return
-
-      const nextIndex = stepIndex + 1
-      const now = Date.now()
-      if (nextIndex >= lesson.steps.length) {
-        setCompleted(true)
-        setRetrying(false)
-        saveProgress(lesson.chapterId, lesson.id, {
-          completedSteps: lesson.steps.length,
-          completed: true,
-          updatedAt: now,
-        })
-        onComplete?.()
-      } else {
-        setStepIndex(nextIndex)
-        setRevealedHints(0)
-        saveProgress(lesson.chapterId, lesson.id, {
-          completedSteps: nextIndex,
-          completed: false,
-          updatedAt: now,
-        })
-      }
-    },
-    [completed, retrying, lesson, stepIndex, session.vfs, onComplete],
-  )
-
-  const currentStep = lesson.steps[stepIndex]
   const hints = currentStep?.hints ? locList(currentStep.hints, locale) : []
-  const initialCwd = lesson.initialCwd ?? HOME_PATH
   const nextLesson = findNextLesson(lesson.chapterId, lesson.id)
 
   return (
@@ -193,9 +119,8 @@ export function LessonView({ lesson, onComplete }: LessonViewProps) {
       </section>
 
       <div className="flex min-h-0 flex-1">
-        {/* レッスン切替・再挑戦時に Terminal の履歴等を引き継がないよう、key で再 mount を強制 */}
         <Terminal
-          key={`${lesson.chapterId}/${lesson.id}/${attempt}`}
+          key={terminalKey}
           shell={session.shell}
           initialCtx={defaultContext(initialCwd)}
           onAfterExecute={handleAfterExecute}
