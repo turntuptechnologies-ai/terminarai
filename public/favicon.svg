@@ -1,9 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
   <!--
-    terminarai favicon — ペンギン頭部の横向きシルエット (右向き、単色)
-    DESIGN.md カラー: zinc-950 (#09090b)
-    16x16 タブでも「丸い頭 + 短い三角くちばし」のシルエットで読み取れることを優先。
+    terminarai favicon — 正面向きペンギン (フラット, 単色 + emerald アクセント)
+    DESIGN.md カラー: 本体 zinc-950 (#09090b) / 腹 white / くちばし・足 emerald-400 (#34d399)
+    16x16 タブでも「丸い頭 + 白い腹 + 緑のくちばし」のシルエットで読み取れることを優先。
   -->
-  <ellipse cx="26" cy="32" rx="22" ry="24" fill="#09090b"/>
-  <polygon points="42,26 60,32 42,38" fill="#09090b"/>
+  <ellipse cx="32" cy="43" rx="18" ry="19" fill="#09090b"/>
+  <circle cx="32" cy="20" r="12" fill="#09090b"/>
+  <ellipse cx="32" cy="46" rx="9" ry="14" fill="#fafafa"/>
+  <circle cx="27" cy="18" r="1.8" fill="#fafafa"/>
+  <circle cx="37" cy="18" r="1.8" fill="#fafafa"/>
+  <polygon points="28,23 36,23 32,30" fill="#34d399"/>
+  <ellipse cx="24" cy="61" rx="6" ry="3" fill="#34d399"/>
+  <ellipse cx="40" cy="61" rx="6" ry="3" fill="#34d399"/>
 </svg>
